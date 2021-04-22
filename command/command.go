@@ -13,6 +13,13 @@ func Run() {
 	app := cli.NewCLI("fspop", version.GetVersion().VersionNumber())
 	app.Args = os.Args[1:]
 
+	// Feed active commands to CLI app
+	app.Commands = map[string]cli.CommandFactory{
+		"list": func() (cli.Command, error) {
+			return &ListCommand{}, nil
+		},
+	}
+
 	// Run app
 	exitStatus, err := app.Run()
 	if err != nil {

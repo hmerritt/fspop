@@ -6,6 +6,8 @@ import (
 	"os"
 	"sort"
 	"strings"
+
+	"gitlab.com/merrittcorp/fspop/yaml"
 )
 
 type ListCommand struct{}
@@ -52,7 +54,7 @@ func (c *ListCommand) Run(args []string) int {
 	for _, f := range files {
 		name := f.Name()
 		if !f.IsDir() {
-			if name[len(name)-4:] == "yaml" || name[len(name)-3:] == "yml" {
+			if yaml.IsYamlFile(name) {
 				yamlFiles = append(yamlFiles, name)
 			}
 		}

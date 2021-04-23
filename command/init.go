@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"gitlab.com/merrittcorp/fspop/message"
+	"gitlab.com/merrittcorp/fspop/yaml"
 )
 
 type InitCommand struct{}
@@ -33,11 +34,7 @@ func (c *InitCommand) Run(args []string) int {
 	path := "structure.yml"
 
 	if len(args) > 0 {
-		path = args[0]
-	}
-
-	if path[len(path)-4:] != "yaml" && path[len(path)-3:] != "yml" {
-		path = path + ".yml"
+		path = yaml.AddYamlExtension(args[0])
 	}
 
 	// TODO: Add actual error reporting

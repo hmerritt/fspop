@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -45,12 +46,38 @@ func (c *ListCommand) Run(args []string) int {
 
 	files, err := os.ReadDir(path)
 	if err != nil {
+		// TODO: Print actual error message here
 		log.Fatal(err)
 	}
 
+	// TODO: Run regex in a thread for each file
+	//       wait at end of for-loop before resuming
+
+	yamlFiles := make([]string, 0)
+
 	for _, f := range files {
-		fmt.Println(f.Name())
+		match, _ := regexp.MatchString(".yml|.yaml", f.Name())
+		if match && !f.IsDir() {
+			yamlFiles = append(yamlFiles, f.Name())
+		}
 	}
+
+	if len(yamlFiles) == 0 {
+		fmt.Println("No structure files found in the current directory.")
+		fmt.Println()
+		fmt.Println("Create a structure file using:")
+		fmt.Println("$ fspop init <name>")
+		return 2
+	}
+
+	fmt.Printf("Found %d possible structure files:\n", len(yamlFiles))
+
+	for _, yf := range yamlFiles {
+		fmt.Printf("-- %s\n", yf)
+	}
+
+	fmt.Println("\nDeploy a structure file using:")
+	fmt.Println("$ fspop deploy <name>")
 
 	return 0
 }

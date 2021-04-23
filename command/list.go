@@ -2,6 +2,8 @@ package command
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"strings"
 )
 
@@ -32,6 +34,23 @@ Usage: fspop list [options] PATH
 }
 
 func (c *ListCommand) Run(args []string) int {
-	fmt.Println("LIST")
+	path := "./"
+
+	if len(args) > 0 {
+		path = args[0]
+	}
+
+	// TODO: Check if path exists
+	//       print warning and fallback to './' if not
+
+	files, err := os.ReadDir(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, f := range files {
+		fmt.Println(f.Name())
+	}
+
 	return 0
 }

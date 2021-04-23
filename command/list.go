@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"regexp"
+	"sort"
 	"strings"
-	"sync"
-	"time"
 )
 
 type ListCommand struct{}
@@ -49,25 +47,25 @@ func (c *ListCommand) Run(args []string) int {
 		log.Fatal(err)
 	}
 
-	start := time.Now()
-
-	// TODO: Run regex in a thread for each file
-	//       wait at end of for-loop before resuming
-	var wg sync.WaitGroup
-
 	yamlFiles := make([]string, 0)
 
 	for _, f := range files {
+		name := f.Name()
 		if !f.IsDir() {
-			wg.Add(1)
-			go matchYAMLFile(&wg, &yamlFiles, f.Name())
+			if name[len(name)-4:] == "yaml" || name[len(name)-3:] == "yml" {
+				yamlFiles = append(yamlFiles, name)
+			}
 		}
 	}
 
-	wg.Wait()
+	sort.Strings(yamlFiles)
 
 	if len(yamlFiles) == 0 {
-		fmt.Println("No structure files found in the current directory.")
+		pathFriendly := "'" + path + "'"
+		if path == "./" {
+			pathFriendly = "current"
+		}
+		fmt.Println("No structure files found in the " + pathFriendly + " directory.")
 		fmt.Println()
 		fmt.Println("Create a structure file using:")
 		fmt.Println("$ fspop init <name>")
@@ -83,15 +81,5 @@ func (c *ListCommand) Run(args []string) int {
 	fmt.Println("\nDeploy a structure file using:")
 	fmt.Println("$ fspop deploy <name>")
 
-	fmt.Println(time.Since(start))
-
 	return 0
-}
-
-func matchYAMLFile(wg *sync.WaitGroup, yamlFiles *[]string, name string) {
-	match, _ := regexp.MatchString(".yml|.yaml", name)
-	if match {
-		*yamlFiles = append(*yamlFiles, name)
-	}
-	wg.Done()
 }

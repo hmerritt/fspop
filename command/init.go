@@ -85,10 +85,10 @@ data:
 dynamic:
   - dyn:
     - amount: 100
-	- data: example
-	- type: file
-	- name: fspop_example_$num
-	- padded: true
+    - data: example
+    - type: file
+    - name: fspop_example_$num
+    - padded: true
 
 structure:
   - file.empty

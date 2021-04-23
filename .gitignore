@@ -6,11 +6,11 @@ bin/
 dist/
 pkg/
 
+*.yml
+*.yaml
+
 target/
 .idea/
-tests/*.yml
-tests/*.yaml
-tests/*.json
 
 *.log
 *.tar

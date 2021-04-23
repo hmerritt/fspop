@@ -27,7 +27,7 @@ Usage: fspop list [options] PATH
   Thease files (could) be fspop structure files
   that can be deployed using the command:
 
-  $ fspop deploy [name-of-file]
+  $ fspop deploy <NAME>
 
 `
 
@@ -68,7 +68,7 @@ func (c *ListCommand) Run(args []string) int {
 		fmt.Println("No structure files found in the " + pathFriendly + " directory.")
 		fmt.Println()
 		fmt.Println("Create a structure file using:")
-		fmt.Println("$ fspop init <name>")
+		fmt.Println("$ fspop init <NAME>")
 		return 2
 	}
 
@@ -79,7 +79,7 @@ func (c *ListCommand) Run(args []string) int {
 	}
 
 	fmt.Println("\nDeploy a structure file using:")
-	fmt.Println("$ fspop deploy <name>")
+	fmt.Println("$ fspop deploy <NAME>")
 
 	return 0
 }

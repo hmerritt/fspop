@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"gitlab.com/merrittcorp/fspop/message"
@@ -35,6 +36,34 @@ func (c *InitCommand) Run(args []string) int {
 		path = args[0]
 	}
 
+	if path[len(path)-4:] != "yaml" && path[len(path)-3:] != "yml" {
+		path = path + ".yml"
+	}
+
+	// TODO: Add actual error reporting
+
+	// Create structure file
+	file, err := os.Create(path)
+	if err != nil {
+		fmt.Println(err)
+		return 1
+	}
+
+	// Write content into file
+	_, err = file.WriteString(yamlFileContent())
+	if err != nil {
+		fmt.Println(err)
+		file.Close()
+		return 1
+	}
+
+	// Close file
+	err = file.Close()
+	if err != nil {
+		fmt.Println(err)
+		return 1
+	}
+
 	fmt.Println(message.Green("Success.") + ` Created '` + path + `' structure file.
 
 Structure files can be deployed using the command:
@@ -45,7 +74,7 @@ $ fspop deploy ` + path)
 }
 
 func yamlFileContent() string {
-	return `version: 3
+	return `version: 4
 
 name: fspop-example
 

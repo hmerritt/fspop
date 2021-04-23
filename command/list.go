@@ -6,6 +6,8 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
+	"time"
 )
 
 type ListCommand struct{}
@@ -41,26 +43,28 @@ func (c *ListCommand) Run(args []string) int {
 		path = args[0]
 	}
 
-	// TODO: Check if path exists
-	//       print warning and fallback to './' if not
-
 	files, err := os.ReadDir(path)
 	if err != nil {
 		// TODO: Print actual error message here
 		log.Fatal(err)
 	}
 
+	start := time.Now()
+
 	// TODO: Run regex in a thread for each file
 	//       wait at end of for-loop before resuming
+	var wg sync.WaitGroup
 
 	yamlFiles := make([]string, 0)
 
 	for _, f := range files {
-		match, _ := regexp.MatchString(".yml|.yaml", f.Name())
-		if match && !f.IsDir() {
-			yamlFiles = append(yamlFiles, f.Name())
+		if !f.IsDir() {
+			wg.Add(1)
+			go matchYAMLFile(&wg, &yamlFiles, f.Name())
 		}
 	}
+
+	wg.Wait()
 
 	if len(yamlFiles) == 0 {
 		fmt.Println("No structure files found in the current directory.")
@@ -79,5 +83,15 @@ func (c *ListCommand) Run(args []string) int {
 	fmt.Println("\nDeploy a structure file using:")
 	fmt.Println("$ fspop deploy <name>")
 
+	fmt.Println(time.Since(start))
+
 	return 0
+}
+
+func matchYAMLFile(wg *sync.WaitGroup, yamlFiles *[]string, name string) {
+	match, _ := regexp.MatchString(".yml|.yaml", name)
+	if match {
+		*yamlFiles = append(*yamlFiles, name)
+	}
+	wg.Done()
 }

@@ -43,3 +43,29 @@ $ fspop deploy ` + path)
 
 	return 0
 }
+
+func yamlFileContent() string {
+	return `version: 3
+
+name: fspop-example
+
+data:
+  - example: text can be imported like this
+  - data_file: /path/to/file
+
+dynamic:
+  - dyn:
+    - amount: 100
+	- data: example
+	- type: file
+	- name: fspop_example_$num
+	- padded: true
+
+structure:
+  - file.empty
+  - file_data: example
+  - $dyn
+  - /folder:
+    - /sub-folder
+`
+}

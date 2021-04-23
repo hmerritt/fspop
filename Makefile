@@ -13,5 +13,5 @@ vet: fmt
 .PHONY:vet
 
 build: vet
-	go build .
+	go build -ldflags "-s -w" .
 .PHONY:build

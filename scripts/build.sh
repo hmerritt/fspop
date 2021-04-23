@@ -15,6 +15,7 @@ cd "$DIR"
 
 # Set build tags
 BUILD_TAGS="${BUILD_TAGS:-"fspop"}"
+LD_FLAGS="-s -w "
 
 # Get the git commit
 GIT_COMMIT="$(git rev-parse HEAD)"

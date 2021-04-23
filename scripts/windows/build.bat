@@ -60,7 +60,7 @@ echo ==^> Building...
 gox^
  -os="%_XC_OS%"^
  -arch="%_XC_ARCH%"^
- -ldflags "-X gitlab.com/merrittcorp/fspop/version.GitCommit=%_GIT_COMMIT%%_GIT_DIRTY%"^
+ -ldflags "-s -w -X gitlab.com/merrittcorp/fspop/version.GitCommit=%_GIT_COMMIT%%_GIT_DIRTY%"^
  -output "pkg/{{.OS}}_{{.Arch}}/fspop"^
  .
 

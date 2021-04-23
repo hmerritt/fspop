@@ -11,7 +11,7 @@ import (
 type ListCommand struct{}
 
 func (c *ListCommand) Synopsis() string {
-	return "List (potential) structure files in the current directory"
+	return "List structure files in the current directory"
 }
 
 func (c *ListCommand) Help() string {

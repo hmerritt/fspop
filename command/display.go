@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"gitlab.com/merrittcorp/fspop/message"
 	"gitlab.com/merrittcorp/fspop/parse"
 )
 
@@ -29,26 +30,45 @@ Usage: fspop display [options] NAME
 }
 
 func (c *DisplayCommand) Run(args []string) int {
-	path := parse.DefaultYamlFile
+	var path string
 
-	if len(args) > 0 {
+	if len(args) == 0 {
+		message.Warn("No file entered.")
+		message.Warn("Trying default '" + parse.DefaultYamlFile + "' instead.")
+		message.Text("")
+		path = parse.DefaultYamlFile
+	} else {
 		path = parse.ElasticExtension(args[0])
 	}
 
-	var yamlData []byte
+	var fileData []byte
+	var fileError error
 
 	// Decide if URL or file
 	if parse.UseUrl(path) {
-		fmt.Println("Fetching remote YAML file")
-		yamlData = parse.FetchUrl(path)
+		fileData, fileError = parse.FetchUrl(path)
+
+		if fileError != nil {
+			message.Error("Unable to fetch URL data.")
+			message.Error(fmt.Sprint(fileError))
+			fmt.Println()
+			message.Warn("Make sure the link is accessible and try again.")
+			return 2
+		}
 	} else {
-		yamlData = parse.FetchFile(path)
+		fileData, fileError = parse.FetchFile(path)
+
+		if fileError != nil {
+			message.Error("Unable to open file.")
+			message.Error(fmt.Sprint(fileError))
+			fmt.Println()
+			message.Warn("Check the file is exists and try again.")
+			return 2
+		}
 	}
 
-	// TODO: catch fetch errors here
-
 	// Parse YAML
-	structure := parse.ParseYaml(yamlData)
+	structure := parse.ParseYaml(fileData)
 	// https://merritt.es/tools/structure.yml
 
 	// TODO: catch parse errors here

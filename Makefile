@@ -16,6 +16,6 @@ build: vet
 	go build -ldflags "-s -w" .
 .PHONY:build
 
-buildquick:
+buildq:
 	go build -ldflags "-s -w" .
 .PHONY:bq

@@ -19,3 +19,7 @@ build: vet
 buildq:
 	go build -ldflags "-s -w" .
 .PHONY:bq
+
+build_linux:
+	gox -os "linux" -arch "amd64" -ldflags "-s -w" -output "fspop" .
+.PHONY:build_linux

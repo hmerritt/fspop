@@ -72,10 +72,16 @@ func (c *DisplayCommand) Run(args []string) int {
 	}
 
 	// Parse YAML
-	structure := parse.ParseYaml(fileData)
+	structure, parseErr := parse.ParseYaml(fileData)
 	// https://merritt.es/tools/structure.yml
 
-	// TODO: catch parse errors here
+	if parseErr != nil {
+		message.Error("Unable to parse YAML file.")
+		message.Error(fmt.Sprint(parseErr))
+		fmt.Println()
+		message.Warn("Check the file is valid YAML and try again.")
+		return 2
+	}
 
 	fmt.Printf("Version: %s \n", structure.Version)
 	fmt.Printf("Name: %s \n", structure.Name)

@@ -46,7 +46,11 @@ func (c *DisplayCommand) Run(args []string) int {
 
 	// Decide if URL or file
 	if parse.UseUrl(path) {
+		message.Spinner.Start("", " Fetching URL data...")
+
 		fileData, fileError = parse.FetchUrl(path)
+
+		message.Spinner.Stop()
 
 		if fileError != nil {
 			message.Error("Unable to fetch URL data.")

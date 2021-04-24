@@ -7,6 +7,8 @@ import (
 
 var YamlExtensions = [2]string{".yaml", ".yml"}
 
+var DefaultYamlFile = "structure.yml"
+
 func FileExtension(filename string) string {
 	return filepath.Ext(filename)
 }

@@ -31,7 +31,7 @@ Usage: fspop init [options] NAME
 }
 
 func (c *InitCommand) Run(args []string) int {
-	path := "structure.yml"
+	path := parse.DefaultYamlFile
 
 	if len(args) > 0 {
 		path = parse.AddYamlExtension(args[0])

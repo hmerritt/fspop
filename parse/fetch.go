@@ -10,13 +10,13 @@ func IsUrl(path string) bool {
 	return (strings.HasPrefix(path, "www.") || strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://"))
 }
 
+func UseUrl(path string) bool {
+	return (!FileExists(path) && IsUrl(path))
+}
+
 func FileExists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
-}
-
-func UseUrl(path string) bool {
-	return (!FileExists(path) && IsUrl(path))
 }
 
 func FetchYaml(path string) []byte {

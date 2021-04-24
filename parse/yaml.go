@@ -27,3 +27,17 @@ func AddYamlExtension(filename string) string {
 
 	return filename + YamlExtensions[1]
 }
+
+func ElasticExtension(filename string) string {
+	if IsYamlFile(filename) || FileExists(filename) {
+		return filename
+	}
+
+	elastic := AddYamlExtension(filename)
+
+	if FileExists(elastic) {
+		return elastic
+	} else {
+		return filename
+	}
+}

@@ -1,4 +1,4 @@
-package yaml
+package parse
 
 import (
 	"path/filepath"

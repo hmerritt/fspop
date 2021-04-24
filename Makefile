@@ -15,3 +15,7 @@ vet: fmt
 build: vet
 	go build -ldflags "-s -w" .
 .PHONY:build
+
+buildquick:
+	go build -ldflags "-s -w" .
+.PHONY:bq

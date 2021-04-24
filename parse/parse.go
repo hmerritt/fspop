@@ -5,12 +5,15 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func ParseYaml(data []byte) structure.FspopStructure {
+func ParseYaml(data []byte) (structure.FspopStructure, error) {
 	// Define structure
 	structure := structure.FspopStructure{}
 
 	// Parse YAML data
-	yaml.Unmarshal(data, &structure)
+	err := yaml.Unmarshal(data, &structure)
+	if err != nil {
+		return structure, err
+	}
 
-	return structure
+	return structure, nil
 }

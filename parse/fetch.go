@@ -6,19 +6,17 @@ import (
 	"strings"
 )
 
-func IsUrl(str string) bool {
-	if strings.HasPrefix(str, "www.") || strings.HasPrefix(str, "http://") || strings.HasPrefix(str, "https://") {
-		return true
-	}
-	return false
+func IsUrl(path string) bool {
+	return (strings.HasPrefix(path, "www.") || strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://"))
 }
 
-func UseUrl(str string) bool {
-	if _, err := os.Stat("/path/to/whatever"); os.IsNotExist(err) {
-		return IsUrl(str)
-	}
+func FileExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
 
-	return false
+func UseUrl(path string) bool {
+	return (!FileExists(path) && IsUrl(path))
 }
 
 func FetchYaml(path string) []byte {
@@ -30,18 +28,15 @@ func FetchYaml(path string) []byte {
 }
 
 func FetchFile(filepath string) []byte {
-	// Read file
 	data, err := os.ReadFile(filepath)
 	if err != nil {
 		panic(err)
 	}
 
-	// Return byte data
 	return data
 }
 
 func FetchUrl(url string) []byte {
-	// Fetch URL
 	res, err := http.Get(url)
 	if err != nil {
 		panic(err)

@@ -13,9 +13,11 @@ cache:
 
 before_script:
   - go mod download
+  - make bootstrap
 
 build:
   stage: build
   script:
     - make build
     - make build_linux
+    - ls -R pkg

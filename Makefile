@@ -12,14 +12,20 @@ vet: fmt
 	go vet ./...
 .PHONY:vet
 
-build: vet
-	go build -ldflags "-s -w" .
-.PHONY:build
+bootstrap:
+    go get github.com/mitchellh/gox
+	go generate -tags tools tools/tools.go
+.PHONY: bootstrap
 
 buildq:
 	go build -ldflags "-s -w" .
 .PHONY:bq
 
-build_linux:
-	gox -os "linux" -arch "amd64" -ldflags "-s -w" -output "fspop" .
-.PHONY:build_linux
+build: vet
+	gox -osarch "linux/386 linux/amd64 linux/arm linux/arm64 windows/386 windows/amd64" \
+	-ldflags "-s -w" \
+	-tags "fspop"    \
+	-gocmd go        \
+	-output "pkg/{{.OS}}_{{.Arch}}/fspop"  \
+	.
+.PHONY:build

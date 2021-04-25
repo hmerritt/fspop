@@ -13,6 +13,7 @@ require (
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/mitchellh/cli v1.1.2
 	github.com/mitchellh/copystructure v1.1.2 // indirect
+	github.com/mitchellh/gox v1.0.1
 	github.com/posener/complete v1.2.3 // indirect
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b // indirect
 	golang.org/x/sys v0.0.0-20210421221651-33663a62ff08 // indirect

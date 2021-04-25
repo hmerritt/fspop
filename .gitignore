@@ -9,6 +9,8 @@ pkg/
 *.yml
 *.yaml
 
+!.gitlab-ci.yml
+
 target/
 .idea/
 

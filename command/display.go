@@ -6,6 +6,7 @@ import (
 
 	"gitlab.com/merrittcorp/fspop/message"
 	"gitlab.com/merrittcorp/fspop/parse"
+	"gitlab.com/merrittcorp/fspop/structure"
 )
 
 type DisplayCommand struct{}
@@ -72,8 +73,7 @@ func (c *DisplayCommand) Run(args []string) int {
 	}
 
 	// Parse YAML
-	structure, parseErr := parse.ParseYaml(fileData)
-	// https://merritt.es/tools/structure.yml
+	yamlStructure, parseErr := parse.ParseYaml(fileData)
 
 	if parseErr != nil {
 		message.Error("Unable to parse YAML file.")
@@ -83,12 +83,11 @@ func (c *DisplayCommand) Run(args []string) int {
 		return 2
 	}
 
-	fmt.Printf("Version: %s \n", structure.Version)
-	fmt.Printf("Name: %s \n", structure.Name)
-	fmt.Printf("Data: %v \n", structure.Data)
-	fmt.Printf("Data: %v \n", structure.Data.([]interface{})[1].(map[interface{}]interface{})["data_file"])
-	fmt.Printf("Dynamic: %v \n", structure.Dynamic)
-	fmt.Printf("Structure: %v \n", structure.Structure)
+	callback := func(path string) {
+		fmt.Println(path)
+	}
+
+	structure.Crawl(yamlStructure.Structure, "", callback)
 
 	return 0
 }

@@ -1,6 +1,7 @@
 package parse
 
 import (
+	"errors"
 	"net/http"
 	"os"
 	"strings"
@@ -10,16 +11,16 @@ func IsUrl(path string) bool {
 	return (strings.HasPrefix(path, "www.") || strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://"))
 }
 
+func UseUrl(path string) bool {
+	return (!FileExists(path) && IsUrl(path))
+}
+
 func FileExists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
 }
 
-func UseUrl(path string) bool {
-	return (!FileExists(path) && IsUrl(path))
-}
-
-func FetchYaml(path string) []byte {
+func FetchYaml(path string) ([]byte, error) {
 	if UseUrl(path) {
 		return FetchUrl(path)
 	} else {
@@ -27,26 +28,28 @@ func FetchYaml(path string) []byte {
 	}
 }
 
-func FetchFile(filepath string) []byte {
+func FetchFile(filepath string) ([]byte, error) {
 	data, err := os.ReadFile(filepath)
-	if err != nil {
-		panic(err)
-	}
-
-	return data
+	return data, err
 }
 
-func FetchUrl(url string) []byte {
+func FetchUrl(url string) ([]byte, error) {
 	res, err := http.Get(url)
 	if err != nil {
-		panic(err)
+		return nil, err
+	}
+
+	if !strings.HasPrefix(res.Status, "1") && !strings.HasPrefix(res.Status, "2") {
+		return nil, errors.New("Request returned a bad HTTP status code: " + res.Status + ".")
 	}
 
 	content := make([]byte, res.ContentLength)
 	_, err = res.Body.Read(content)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return content
+	return content, nil
 }
+
+//func HttpStatusCodeError

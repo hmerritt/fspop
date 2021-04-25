@@ -1,0 +1,14 @@
+image: golang:1.16.3
+
+stages:
+ - build
+
+before_script:
+  - go mod download
+  - make bootstrap
+
+build:
+  stage: build
+  script:
+    - make build
+    - ls -R pkg

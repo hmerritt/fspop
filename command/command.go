@@ -15,6 +15,9 @@ func Run() {
 
 	// Feed active commands to CLI app
 	app.Commands = map[string]cli.CommandFactory{
+		"display": func() (cli.Command, error) {
+			return &DisplayCommand{}, nil
+		},
 		"init": func() (cli.Command, error) {
 			return &InitCommand{}, nil
 		},

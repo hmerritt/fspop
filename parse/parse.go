@@ -1,26 +1,19 @@
 package parse
 
 import (
+	"gitlab.com/merrittcorp/fspop/structure"
 	"gopkg.in/yaml.v2"
 )
 
-type FspopStructure struct {
-	Version   string
-	Name      string
-	Data      interface{}
-	Dynamic   interface{}
-	Structure interface{}
-}
-
-func ParseYaml(path string) FspopStructure {
-	// Get YAML
-	data := FetchYaml(path)
-
+func ParseYaml(data []byte) (structure.FspopStructure, error) {
 	// Define structure
-	structure := FspopStructure{}
+	structure := structure.FspopStructure{}
 
 	// Parse YAML data
-	yaml.Unmarshal([]byte(data), &structure)
+	err := yaml.Unmarshal(data, &structure)
+	if err != nil {
+		return structure, err
+	}
 
-	return structure
+	return structure, nil
 }

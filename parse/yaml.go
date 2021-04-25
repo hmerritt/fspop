@@ -2,18 +2,20 @@ package parse
 
 import (
 	"path/filepath"
+	"strings"
 )
 
 var YamlExtensions = [2]string{".yaml", ".yml"}
+
+var DefaultYamlFile = "structure.yml"
 
 func FileExtension(filename string) string {
 	return filepath.Ext(filename)
 }
 
 func IsYamlFile(filename string) bool {
-	extension := FileExtension(filename)
 	for _, yamlext := range YamlExtensions {
-		if extension == yamlext {
+		if strings.HasSuffix(filename, yamlext) {
 			return true
 		}
 	}

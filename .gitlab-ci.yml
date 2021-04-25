@@ -3,14 +3,6 @@ image: golang:1.16.3
 stages:
  - build
 
-cache:
-  paths:
-    - /apt-cache
-    - /go/src/github.com
-    - /go/src/golang.org
-    - /go/src/google.golang.org
-    - /go/src/gopkg.in
-
 before_script:
   - go mod download
   - make bootstrap
@@ -19,5 +11,4 @@ build:
   stage: build
   script:
     - make build
-    - make build_linux
     - ls -R pkg

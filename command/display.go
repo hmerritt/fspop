@@ -83,11 +83,15 @@ func (c *DisplayCommand) Run(args []string) int {
 		return 2
 	}
 
+	fsPath := &structure.FspopStructurePath{
+		Path: []string{},
+	}
+
 	callback := func(path string) {
 		fmt.Println(path)
 	}
 
-	structure.Crawl(yamlStructure.Structure, "", callback)
+	structure.Crawl(yamlStructure.Structure, fsPath, callback)
 
 	return 0
 }

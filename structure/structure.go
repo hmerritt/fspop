@@ -32,7 +32,7 @@ type FspopItem struct {
 	IsEndpoint bool // Tree endpoint (a file, or a directory with no sub-directories)
 	HasData    bool
 	Data       string
-	Children   []FspopItem
+	Children   []*FspopItem // Re-create tree structure
 }
 
 type FspopStructure struct {
@@ -40,7 +40,7 @@ type FspopStructure struct {
 	Name    string
 	Data    []FspopData
 	Dynamic []FspopDynamic
-	Items   []FspopItem
+	Items   []*FspopItem // map[FspopPath]FspopItem
 }
 
 func IsDirectory(path string) bool {

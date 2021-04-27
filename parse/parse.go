@@ -68,7 +68,7 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStr
 	}
 
 	callback := func(path structure.FspopStructurePath, isEndpoint bool) {
-		refinedStructure.Items = append(refinedStructure.Items, structure.FspopItem{
+		refinedStructure.Items = append(refinedStructure.Items, &structure.FspopItem{
 			Path:       path,
 			IsDir:      structure.IsDirectory(path.Last()),
 			IsEndpoint: isEndpoint,

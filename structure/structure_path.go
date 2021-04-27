@@ -12,6 +12,12 @@ type FspopStructurePath struct {
 	Path []string
 }
 
+func CreateFspopStructurePath(pathInit []string) *FspopStructurePath {
+	return &FspopStructurePath{
+		Path: pathInit,
+	}
+}
+
 func (fsPath *FspopStructurePath) Actual() string {
 	return strings.TrimSuffix(fsPath.ToString(), "/")
 }

@@ -1,11 +1,10 @@
 package structure
 
 import (
-	"fmt"
 	"strings"
 )
 
-type FspopStructure struct {
+type YamlStructure struct {
 	Version   string
 	Name      string
 	Data      interface{}
@@ -13,45 +12,34 @@ type FspopStructure struct {
 	Structure interface{}
 }
 
-func Crawl(structure interface{}, pathStart *FspopStructurePath, callback func(string)) {
-	// fmt.Printf("Version: %s \n", structure.Version)
-	// fmt.Printf("Name: %s \n", structure.Name)
-	// fmt.Printf("Data: %v \n", structure.Data)
-	// fmt.Printf("Data: %v \n", structure.Data.([]interface{})[1].(map[interface{}]interface{})["data_file"])
-	// fmt.Printf("Dynamic: %v \n", structure.Dynamic)
-	// fmt.Printf("Structure: %v \n", structure.Structure)
+type FspopData struct {
+	Key  string
+	Data string
+}
 
-	// Unique path for each iteration
-	path := &FspopStructurePath{
-		Path: pathStart.Path,
-	}
+type FspopDynamic struct {
+	Key    string
+	Count  int
+	Data   FspopData
+	Type   string
+	Name   string
+	Padded bool
+}
 
-	switch structure.(type) {
-	case string:
-		//fmt.Printf("%v is an interface \n", structure)
-		//fmt.Printf("%s %v\n", cliArrow, structure)
-		path.Append(fmt.Sprintf("%v", structure))
-		fmt.Printf("%v\n", path.ToString())
+type FspopItem struct {
+	Path       FspopStructurePath
+	IsDir      bool
+	IsEndpoint bool // Tree endpoint (a file, or a directory with no sub-directories)
+	HasData    bool
+	Data       string
+}
 
-	case []interface{}:
-		//fmt.Printf("%v is a slice of interface \n ", structure)
-		for _, v := range structure.([]interface{}) { // use type assertion to loop over []interface{}
-			Crawl(v, path, func(path string) {})
-		}
-
-	case map[interface{}]interface{}:
-		//fmt.Printf("%v is a map \n\n\n", structure)
-
-		// Recurse interface
-		for key, value := range structure.(map[interface{}]interface{}) { // use type assertion to loop over map[string]interface{}
-			//fmt.Println(key)
-			//fmt.Printf("%s %v\n", cliArrow, key)
-			path.Append(fmt.Sprintf("%v", key))
-			fmt.Printf("%v\n", path.ToString())
-
-			Crawl(value, path, func(path string) {})
-		}
-	}
+type FspopStructure struct {
+	Version string
+	Name    string
+	Data    []FspopData
+	Dynamic []FspopDynamic
+	Items   []FspopItem
 }
 
 func IsDirectory(path string) bool {

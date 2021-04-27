@@ -3,12 +3,28 @@ package structure
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"gitlab.com/merrittcorp/fspop/message"
 )
 
 type FspopStructurePath struct {
 	Path []string
+}
+
+func (fsPath *FspopStructurePath) Actual() string {
+	return strings.TrimSuffix(fsPath.ToString(), "/")
+}
+
+func (fsPath *FspopStructurePath) ParentPath() string {
+	if fsPath.Length() < 2 {
+		return ""
+	}
+	var final string
+	for _, value := range fsPath.Path[:len(fsPath.Path)-1] {
+		final = final + value
+	}
+	return strings.TrimSuffix(final, "/")
 }
 
 func (fsPath *FspopStructurePath) ToString() string {
@@ -35,6 +51,13 @@ func (fsPath *FspopStructurePath) Last() string {
 		return ""
 	}
 	return fsPath.Path[len(fsPath.Path)-1]
+}
+
+func (fsPath *FspopStructurePath) Name() string {
+	if fsPath.IsEmpty() {
+		return ""
+	}
+	return strings.TrimSuffix(fsPath.Last(), "/")
 }
 
 func (fsPath *FspopStructurePath) Length() int {

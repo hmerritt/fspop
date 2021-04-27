@@ -32,6 +32,7 @@ type FspopItem struct {
 	IsEndpoint bool // Tree endpoint (a file, or a directory with no sub-directories)
 	HasData    bool
 	Data       string
+	Children   []FspopItem
 }
 
 type FspopStructure struct {

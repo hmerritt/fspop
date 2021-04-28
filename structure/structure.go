@@ -63,27 +63,27 @@ func StandardizeDirectory(path string) string {
  *
  */
 func (fsStruct *FspopStructure) Find(pathToFind *FspopStructurePath) (*FspopItem, error) {
-	items := fsStruct.Items
-	loop := true
+	itemsSlice := [][]*FspopItem{fsStruct.Items}
+	count := 0
 
 	// Traverse until a find, or til end
-	for loop {
+	for count <= len(itemsSlice)-1 {
+		items := itemsSlice[count]
+
 		// Loop FspopItem slice
 		for _, i := range items {
 			// Match path
 			if i.Path.ToString() == pathToFind.ToString() {
 				// Found!
-				i.Data = "changed"
 				return i, nil
 
 			} else if len(i.Children) > 0 {
 				// Recurse deeper if item has children
-				items = i.Children
-			} else {
-				// Item not found, end loop
-				loop = false
+				itemsSlice = append(itemsSlice, i.Children)
 			}
 		}
+
+		count++
 	}
 
 	// Path not found :(

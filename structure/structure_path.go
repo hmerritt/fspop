@@ -12,7 +12,7 @@ type FspopStructurePath struct {
 	Path []string
 }
 
-func CreateFspopStructurePath(pathInit []string) *FspopStructurePath {
+func CreateFspopPath(pathInit []string) *FspopStructurePath {
 	return &FspopStructurePath{
 		Path: pathInit,
 	}

@@ -1,7 +1,6 @@
 package structure
 
 import (
-	"errors"
 	"strings"
 )
 
@@ -28,21 +27,17 @@ type FspopDynamic struct {
 }
 
 type FspopItem struct {
-	Path       FspopStructurePath
-	IsDir      bool
-	IsEndpoint bool // Tree endpoint (a file, or a directory with no sub-directories)
-	HasData    bool
-	Data       string
-	Children   []*FspopItem // Re-create tree structure
+	Path       FspopPath
+	DynamicKey string
+	DataKey    string
 }
 
 type FspopStructure struct {
 	Version string
 	Name    string
-	Data    []FspopData
-	Dynamic []FspopDynamic
-	Tree    *FspopItem
-	Items   []*FspopItem // map[FspopPath]FspopItem
+	Data    map[string]*FspopData
+	Dynamic map[string]*FspopDynamic
+	Items   map[string]*FspopItem
 }
 
 func IsDirectory(path string) bool {
@@ -56,69 +51,22 @@ func StandardizeDirectory(path string) string {
 	return path
 }
 
-func StartTree() *FspopItem {
-	return &FspopItem{
-		Path:       *CreateFspopPath([]string{}),
-		IsDir:      true,
-		IsEndpoint: false,
-		HasData:    false,
-	}
-}
-
 /*
- * Find an FspopItem through it's Path
- * would like to use a recursive function for this but would require
- * an extra param such as, Find(items *[]FspopItem, ...) which is
- * not great to use.
- *
+ * Checks if a path exists in Items
  */
-func (fsStruct *FspopStructure) Find(pathToFind *FspopStructurePath) (*FspopItem, error) {
-	itemsSlice := [][]*FspopItem{fsStruct.Items}
-	count := 0
-
-	// Traverse until a find, or til end
-	for count <= len(itemsSlice)-1 {
-		items := itemsSlice[count]
-
-		// Loop FspopItem slice
-		for _, i := range items {
-			// Match path
-			if i.Path.ToString() == pathToFind.ToString() {
-				// Found!
-				return i, nil
-
-			} else if len(i.Children) > 0 {
-				// Recurse deeper if item has children
-				itemsSlice = append(itemsSlice, i.Children)
-			}
-		}
-
-		count++
-	}
-
-	// Path not found :(
-	return &FspopItem{}, errors.New("path not found")
-}
-
-/*
- * Add an FspopItem to the structure
- */
-func (fsStruct *FspopStructure) Add(itemToAdd *FspopItem) error {
-	if len(itemToAdd.Path.Path) < 1 {
-		return errors.New("fspopitem not added to structure. path is empty")
-	} else if len(itemToAdd.Path.Path) == 1 {
-		fsStruct.Items = append(fsStruct.Items, itemToAdd)
-		return nil
-	}
-
-	// Find parent
-	parentPath := CreateFspopPath(itemToAdd.Path.Path[:itemToAdd.Path.Length()-1])
-	parent, err := fsStruct.Find(parentPath)
-
-	if err == nil && !parent.IsEndpoint {
-		parent.Children = append(parent.Children, itemToAdd)
-		return nil
+func (fsStruct *FspopStructure) Exists(pathToFind *FspopPath) bool {
+	if _, ok := fsStruct.Items[pathToFind.ToString()]; ok {
+		return true
 	} else {
-		return errors.New("fspopitem not added to structure")
+		return false
+	}
+}
+
+/*
+ * Crawl
+ */
+func (fsStruct *FspopStructure) Crawl(callback func(string, FspopItem)) {
+	for k, v := range fsStruct.Items {
+		callback(k, *v)
 	}
 }

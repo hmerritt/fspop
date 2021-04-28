@@ -40,7 +40,7 @@ func FetchUrl(url string) ([]byte, error) {
 	}
 
 	if !strings.HasPrefix(res.Status, "1") && !strings.HasPrefix(res.Status, "2") {
-		return nil, errors.New("Request returned a bad HTTP status code: " + res.Status + ".")
+		return nil, errors.New("request returned a bad http status code: " + res.Status + ".")
 	}
 
 	content := make([]byte, res.ContentLength)

@@ -6,6 +6,7 @@ require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/briandowns/spinner v1.12.0
+	github.com/disiqueira/gotree v1.0.0 // indirect
 	github.com/fatih/color v1.10.0
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect

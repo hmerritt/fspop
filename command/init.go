@@ -71,7 +71,13 @@ $ fspop deploy ` + path)
 }
 
 func yamlFileContent() string {
-	return `version: 4
+	return `###########################
+## fspop structure file
+##
+## Usage info:
+## $ fspop -h
+###########################
+version: 4
 
 name: fspop-example
 

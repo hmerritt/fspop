@@ -57,6 +57,7 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStr
 	refinedStructure := &structure.FspopStructure{
 		Version: parsedYamlStructure.Version,
 		Name:    parsedYamlStructure.Name,
+		Tree:    structure.StartTree(),
 		// Data:    []structure.FspopData,
 		// Dynamic: []structure.FspopDynamic,
 		// Items:   []structure.FspopItem,

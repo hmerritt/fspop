@@ -41,6 +41,7 @@ type FspopStructure struct {
 	Name    string
 	Data    []FspopData
 	Dynamic []FspopDynamic
+	Tree    *FspopItem
 	Items   []*FspopItem // map[FspopPath]FspopItem
 }
 
@@ -53,6 +54,15 @@ func StandardizeDirectory(path string) string {
 		path = path[1:] + "/"
 	}
 	return path
+}
+
+func StartTree() *FspopItem {
+	return &FspopItem{
+		Path:       *CreateFspopPath([]string{}),
+		IsDir:      true,
+		IsEndpoint: false,
+		HasData:    false,
+	}
 }
 
 /*

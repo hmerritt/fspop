@@ -57,25 +57,18 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStr
 	refinedStructure := &structure.FspopStructure{
 		Version: parsedYamlStructure.Version,
 		Name:    parsedYamlStructure.Name,
-		Tree:    structure.StartTree(),
-		// Data:    []structure.FspopData,
-		// Dynamic: []structure.FspopDynamic,
-		// Items:   []structure.FspopItem,
+		Data:    make(map[string]*structure.FspopData),
+		Dynamic: make(map[string]*structure.FspopDynamic),
+		Items:   make(map[string]*structure.FspopItem),
 	}
 
 	// Structure
-	fsPath := structure.FspopStructurePath{
-		Path: []string{},
-	}
+	fsPath := *structure.CreateFspopPath([]string{})
 
-	callback := func(path structure.FspopStructurePath, isEndpoint bool) {
-		refinedStructure.Items = append(refinedStructure.Items, &structure.FspopItem{
-			Path:       path,
-			IsDir:      structure.IsDirectory(path.Last()),
-			IsEndpoint: isEndpoint,
-			HasData:    false,
-			Data:       "",
-		})
+	callback := func(path structure.FspopPath) {
+		refinedStructure.Items[path.ToString()] = &structure.FspopItem{
+			Path: path,
+		}
 	}
 
 	RefineYamlItems(parsedYamlStructure.Structure, fsPath, callback)
@@ -86,17 +79,15 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStr
 	return refinedStructure
 }
 
-func RefineYamlItems(structureInterface interface{}, pathStart structure.FspopStructurePath, callback func(structure.FspopStructurePath, bool)) {
+func RefineYamlItems(structureInterface interface{}, pathStart structure.FspopPath, callback func(structure.FspopPath)) {
 	// Unique path for each iteration
-	path := structure.FspopStructurePath{
-		Path: pathStart.Path,
-	}
+	path := *structure.CreateFspopPath(pathStart.Path)
 
 	switch structureInterface.(type) {
 	case string:
 		// File or Directory name
 		path.Append(fmt.Sprintf("%v", structureInterface))
-		callback(path, true)
+		callback(path)
 
 	case []interface{}:
 		// Use type assertion to loop over []interface{}

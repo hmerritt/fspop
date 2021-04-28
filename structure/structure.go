@@ -89,3 +89,26 @@ func (fsStruct *FspopStructure) Find(pathToFind *FspopStructurePath) (*FspopItem
 	// Path not found :(
 	return &FspopItem{}, errors.New("path not found")
 }
+
+/*
+ * Add an FspopItem to the structure
+ */
+func (fsStruct *FspopStructure) Add(itemToAdd *FspopItem) error {
+	if len(itemToAdd.Path.Path) < 1 {
+		return errors.New("fspopitem not added to structure. path is empty")
+	} else if len(itemToAdd.Path.Path) == 1 {
+		fsStruct.Items = append(fsStruct.Items, itemToAdd)
+		return nil
+	}
+
+	// Find parent
+	parentPath := CreateFspopPath(itemToAdd.Path.Path[:itemToAdd.Path.Length()-1])
+	parent, err := fsStruct.Find(parentPath)
+
+	if err == nil && !parent.IsEndpoint {
+		parent.Children = append(parent.Children, itemToAdd)
+		return nil
+	} else {
+		return errors.New("fspopitem not added to structure")
+	}
+}

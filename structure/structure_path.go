@@ -8,74 +8,56 @@ import (
 	"gitlab.com/merrittcorp/fspop/message"
 )
 
-type FspopStructurePath struct {
+type FspopPath struct {
 	Path []string
 }
 
-func CreateFspopPath(pathInit []string) *FspopStructurePath {
-	return &FspopStructurePath{
+func CreateFspopPath(pathInit []string) *FspopPath {
+	return &FspopPath{
 		Path: pathInit,
 	}
 }
 
-func (fsPath *FspopStructurePath) Actual() string {
+func (fsPath *FspopPath) Actual() string {
 	return strings.TrimSuffix(fsPath.ToString(), "/")
 }
 
-func (fsPath *FspopStructurePath) ParentPath() string {
+func (fsPath *FspopPath) ParentPath() string {
 	if fsPath.Length() < 2 {
 		return ""
 	}
-	var final string
-	for _, value := range fsPath.Path[:len(fsPath.Path)-1] {
-		final = final + value
-	}
-	return strings.TrimSuffix(final, "/")
+	parent := strings.Join(fsPath.Path[:fsPath.Length()-1], "")
+	return strings.TrimSuffix(parent, "/")
 }
 
-func (fsPath *FspopStructurePath) ToString() string {
-	var final string
-	for _, value := range fsPath.Path {
-		final = final + value
-	}
-	return final
+func (fsPath *FspopPath) ToString() string {
+	return strings.Join(fsPath.Path[:], "")
 }
 
-func (fsPath *FspopStructurePath) IsEmpty() bool {
+func (fsPath *FspopPath) IsEmpty() bool {
 	return len(fsPath.Path) == 0
 }
 
-func (fsPath *FspopStructurePath) First() string {
+func (fsPath *FspopPath) First() string {
 	if fsPath.IsEmpty() {
 		return ""
 	}
 	return fsPath.Path[0]
 }
 
-func (fsPath *FspopStructurePath) Last() string {
+func (fsPath *FspopPath) Last() string {
 	if fsPath.IsEmpty() {
 		return ""
 	}
 	return fsPath.Path[len(fsPath.Path)-1]
 }
 
-func (fsPath *FspopStructurePath) Name() string {
-	if fsPath.IsEmpty() {
-		return ""
-	}
-	return strings.TrimSuffix(fsPath.Last(), "/")
-}
-
-func (fsPath *FspopStructurePath) Length() int {
-	return len(fsPath.Path)
-}
-
-func (fsPath *FspopStructurePath) Append(path string) {
+func (fsPath *FspopPath) Append(path string) {
 	// Can't append if a file has been reached
 	if !fsPath.IsEmpty() && !IsDirectory(fsPath.Last()) {
 		message.Error(path)
 		message.Error(fmt.Sprint(fsPath.Path))
-		panic(errors.New("tried to append after a file in fspopstructurePath"))
+		panic(errors.New("tried to append after a file in fspopPath"))
 		//return
 	}
 
@@ -85,4 +67,15 @@ func (fsPath *FspopStructurePath) Append(path string) {
 	}
 
 	fsPath.Path = append(fsPath.Path, path)
+}
+
+func (fsPath *FspopPath) Length() int {
+	return len(fsPath.Path)
+}
+
+func (fsPath *FspopPath) Name() string {
+	if fsPath.IsEmpty() {
+		return ""
+	}
+	return strings.TrimSuffix(fsPath.Last(), "/")
 }

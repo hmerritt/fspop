@@ -99,8 +99,11 @@ func RefineYamlItems(structureInterface interface{}, pathStart structure.FspopPa
 		// Use type assertion to loop over map[string]interface{}
 		for key, value := range structureInterface.(map[interface{}]interface{}) {
 			// Interface 'key' is a directory name
-			path.Append(fmt.Sprintf("%v", key))
-			callback(path, false)
+			// create a new unique path for each iteration,
+			// prevents 'path' being carried forward and messing
+			// with the callback later.
+			newPath := *structure.CreateFspopPath(path.Path)
+			newPath.Append(fmt.Sprintf("%v", key))
 
 			RefineYamlItems(value, path, callback)
 		}

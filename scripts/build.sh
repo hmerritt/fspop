@@ -52,11 +52,11 @@ IFS=: MAIN_GOPATH=($GOPATH)
 IFS=$OLDIFS
 
 # Copy our OS/Arch to the bin/ directory
-DEV_PLATFORM=${DEV_PLATFORM:-"./pkg/$(${GO_CMD} env GOOS)_$(${GO_CMD} env GOARCH)"}
-for F in $(find ${DEV_PLATFORM} -mindepth 1 -maxdepth 1 -type f); do
-    cp ${F} bin/
-    cp ${F} ${MAIN_GOPATH}/bin/
-done
+#DEV_PLATFORM=${DEV_PLATFORM:-"./pkg/$(${GO_CMD} env GOOS)_$(${GO_CMD} env GOARCH)"}
+#for F in $(find ${DEV_PLATFORM} -mindepth 1 -maxdepth 1 -type f); do
+#    cp ${F} bin/
+#    cp ${F} ${MAIN_GOPATH}/bin/
+#done
 
 
 # Zip and copy to the dist dir
@@ -66,15 +66,16 @@ for PLATFORM in $(find ./pkg -mindepth 1 -maxdepth 1 -type d); do
     echo "--> ${OSARCH}"
 
     pushd $PLATFORM >/dev/null 2>&1
-    zip ../${OSARCH}.zip ./*
+    zip ${OSARCH}.zip *
+    mv ${OSARCH}.zip ../../bin/${OSARCH}.zip
     popd >/dev/null 2>&1
 done
 
 # Done!
 echo
-#echo "==> Results bin/:"
-#ls -R bin/
+echo "==> Results bin/:"
+ls -R bin/
 
 #echo
-echo "==> Results:"
-ls -R .
+#echo "==> Results:"
+#ls -R .

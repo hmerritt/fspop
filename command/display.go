@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/disiqueira/gotree"
 	"gitlab.com/merrittcorp/fspop/message"
 	"gitlab.com/merrittcorp/fspop/parse"
 	"gitlab.com/merrittcorp/fspop/structure"
@@ -73,15 +74,36 @@ func (c *DisplayCommand) Run(args []string) int {
 	}
 
 	fsStructure := parse.ParseAndRefineYaml(fileData)
-	//parse.ParseAndRefineYaml(fileData)
 
-	fmt.Println(fsStructure.Items)
+	// Single-depth slice to store all nodes + their tree instance
+	treeNodes := make(map[string]*gotree.Tree)
 
-	fmt.Print("\n\n\n")
+	// Attempt to build tree structure from FspopStructure.Items
+	// Initialise tree struct
+	tree := gotree.New(fsStructure.Name)
+	treeNodes["/"] = &tree
 
+	// Populate treeNodes structure
+	// Crawl each path in structure
 	fsStructure.Crawl(func(key string, item structure.FspopItem) {
-		fmt.Printf("%v  %s  :  %s\n", (key == item.Path.ToString()), key, item.Path.ToString())
+		treeItem := treeNodes["/"]
+
+		// Breakdown invividual path nodes
+		for k, v := range item.Path.PathProgressive() {
+			name := item.Path.Path[k]
+			// Exists already
+			if _, ok := treeNodes[v]; ok {
+				treeItem = treeNodes[v]
+			} else {
+				newDir := (*treeItem).Add(name)
+				treeNodes[v] = &newDir
+				treeItem = treeNodes[v]
+			}
+		}
 	})
+
+	// Print tree
+	fmt.Println(tree.Print())
 
 	return 0
 }

@@ -62,7 +62,7 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStr
 		Items:   make(map[string]*structure.FspopItem),
 	}
 
-	// Structure
+	// Setup structure items
 	fsPath := *structure.CreateFspopPath([]string{})
 
 	callback := func(path structure.FspopPath) {
@@ -71,7 +71,10 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStr
 		}
 	}
 
+	// Refine structure items
 	RefineYamlItems(parsedYamlStructure.Structure, fsPath, callback)
+
+	// TODO: build directory tree structure
 
 	// TODO: Refine 'Data'
 	// TODO: Refine 'Dynamic'
@@ -81,7 +84,10 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStr
 
 func RefineYamlItems(structureInterface interface{}, pathStart structure.FspopPath, callback func(structure.FspopPath)) {
 	// Unique path for each iteration
-	path := *structure.CreateFspopPath(pathStart.Path)
+	// path := *structure.CreateFspopPath(pathStart.Path)
+	path := structure.FspopPath{
+		Path: pathStart.Path,
+	}
 
 	switch structureInterface.(type) {
 	case string:
@@ -99,11 +105,10 @@ func RefineYamlItems(structureInterface interface{}, pathStart structure.FspopPa
 		// Use type assertion to loop over map[string]interface{}
 		for key, value := range structureInterface.(map[interface{}]interface{}) {
 			// Interface 'key' is a directory name
-			// create a new unique path for each iteration,
+			// Create a new unique path for each iteration,
 			// prevents 'path' being carried forward and messing
 			// with the callback later.
-			newPath := *structure.CreateFspopPath(path.Path)
-			newPath.Append(fmt.Sprintf("%v", key))
+			path.Append(fmt.Sprintf("%v", key))
 
 			RefineYamlItems(value, path, callback)
 		}

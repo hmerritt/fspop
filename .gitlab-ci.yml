@@ -2,6 +2,7 @@ image: golang:1.16.3
 
 stages:
  - build
+ - release
 
 before_script:
   - go mod download
@@ -12,3 +13,12 @@ build:
   script:
     - make build
     - ls -R pkg
+
+release:
+  stage: release
+  script:
+    - ./scripts/build.sh
+#  only:
+#    - tags
+#    refs:
+#      - master

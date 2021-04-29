@@ -58,20 +58,23 @@ for F in $(find ${DEV_PLATFORM} -mindepth 1 -maxdepth 1 -type f); do
     cp ${F} ${MAIN_GOPATH}/bin/
 done
 
-if [ "${VAULT_DEV_BUILD}x" = "x" ]; then
-    # Zip and copy to the dist dir
-    echo "==> Packaging..."
-    for PLATFORM in $(find ./pkg -mindepth 1 -maxdepth 1 -type d); do
-        OSARCH=$(basename ${PLATFORM})
-        echo "--> ${OSARCH}"
 
-        pushd $PLATFORM >/dev/null 2>&1
-        zip ../${OSARCH}.zip ./*
-        popd >/dev/null 2>&1
-    done
-fi
+# Zip and copy to the dist dir
+echo "==> Packaging..."
+for PLATFORM in $(find ./pkg -mindepth 1 -maxdepth 1 -type d); do
+    OSARCH=$(basename ${PLATFORM})
+    echo "--> ${OSARCH}"
+
+    pushd $PLATFORM >/dev/null 2>&1
+    zip ../${OSARCH}.zip ./*
+    popd >/dev/null 2>&1
+done
 
 # Done!
 echo
+#echo "==> Results bin/:"
+#ls -R bin/
+
+#echo
 echo "==> Results:"
-ls -hl bin/
+ls -R .

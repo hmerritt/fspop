@@ -1,8 +1,9 @@
 image: golang:1.16.3
 
 stages:
- - build
- - release
+ - test
+# - build
+# - release
 
 before_script:
   - go mod download
@@ -11,13 +12,13 @@ before_script:
   - apt-get install zip -y
 
 build:
-  stage: build
+  stage: test
   script:
     - make build
     - ls -R pkg
 
 release:
-  stage: release
+  stage: test
   script:
     - chmod 770 ./scripts/build.sh
     - ./scripts/build.sh

@@ -17,6 +17,7 @@ build:
 release:
   stage: release
   script:
+    - chmod 770 ./scripts/build.sh
     - ./scripts/build.sh
 #  only:
 #    - tags

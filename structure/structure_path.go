@@ -22,7 +22,7 @@ func (fsPath *FspopPath) Actual() string {
 	return strings.TrimSuffix(fsPath.ToString(), "/")
 }
 
-func (fsPath *FspopPath) ParentPath() string {
+func (fsPath *FspopPath) ParentString() string {
 	if fsPath.Length() < 2 {
 		return ""
 	}
@@ -78,4 +78,21 @@ func (fsPath *FspopPath) Name() string {
 		return ""
 	}
 	return strings.TrimSuffix(fsPath.Last(), "/")
+}
+
+/*
+ * Returns slice of path strings which include eachother
+ * with each iteration.
+ */
+func (fsPath *FspopPath) PathProgressive() []string {
+	if fsPath.IsEmpty() {
+		return []string{}
+	}
+
+	path := []string{}
+	for i, _ := range fsPath.Path {
+		path = append(path, strings.Join(fsPath.Path[0:i+1], ""))
+	}
+
+	return path
 }

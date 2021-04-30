@@ -63,10 +63,19 @@ func (fsStruct *FspopStructure) Exists(pathToFind *FspopPath) bool {
 }
 
 /*
- * Crawl
+ * Crawl each value in a structure
  */
 func (fsStruct *FspopStructure) Crawl(callback func(string, FspopItem)) {
 	for k, v := range fsStruct.Items {
 		callback(k, *v)
 	}
+}
+
+/*
+ * Count endpoints
+ * Ideally, this would count all unique nodes
+ * not just endpoints.
+ */
+func (fsStruct *FspopStructure) Count() int {
+	return len(fsStruct.Items)
 }

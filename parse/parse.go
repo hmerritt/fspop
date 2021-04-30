@@ -3,6 +3,7 @@ package parse
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"gitlab.com/merrittcorp/fspop/message"
 	"gitlab.com/merrittcorp/fspop/structure"
@@ -62,12 +63,17 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStr
 		Items:   make(map[string]*structure.FspopItem),
 	}
 
+	// TODO: Refine 'Data'
+	// TODO: Refine 'Dynamic'
+
 	// Setup structure items
 	fsPath := *structure.CreateFspopPath([]string{})
 
-	callback := func(path structure.FspopPath) {
+	callback := func(path structure.FspopPath, dataKey string, dynamicKey string) {
 		refinedStructure.Items[path.ToString()] = &structure.FspopItem{
-			Path: path,
+			Path:       path,
+			DataKey:    dataKey,
+			DynamicKey: dynamicKey,
 		}
 	}
 
@@ -76,13 +82,16 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStr
 
 	// TODO: build directory tree structure
 
-	// TODO: Refine 'Data'
-	// TODO: Refine 'Dynamic'
-
 	return refinedStructure
 }
 
-func RefineYamlItems(structureInterface interface{}, pathStart structure.FspopPath, callback func(structure.FspopPath)) {
+/*
+ * Crawl through the 'structure:' items key in the
+ * messy parsed yaml figuring out whats-what and
+ * organising it one item at a time.
+ * Will detect and output file data and dynamic keys
+ */
+func RefineYamlItems(structureInterface interface{}, pathStart structure.FspopPath, callback func(structure.FspopPath, string, string)) {
 	// Unique path for each iteration
 	// path := *structure.CreateFspopPath(pathStart.Path)
 	path := structure.FspopPath{
@@ -91,9 +100,18 @@ func RefineYamlItems(structureInterface interface{}, pathStart structure.FspopPa
 
 	switch structureInterface.(type) {
 	case string:
+		itemName := fmt.Sprintf("%v", structureInterface)
+		dynamicKey := ""
+
 		// File or Directory name
-		path.Append(fmt.Sprintf("%v", structureInterface))
-		callback(path)
+		path.Append(itemName)
+
+		// Check for a dynamic key
+		if !structure.IsDirectory(itemName) && strings.HasPrefix(itemName, "$") {
+			dynamicKey = itemName
+		}
+
+		callback(path, "", dynamicKey)
 
 	case []interface{}:
 		// Use type assertion to loop over []interface{}
@@ -109,6 +127,14 @@ func RefineYamlItems(structureInterface interface{}, pathStart structure.FspopPa
 			// prevents 'path' being carried forward and messing
 			// with the callback later.
 			path.Append(fmt.Sprintf("%v", key))
+
+			// Check for file with a data variable
+			// Use 'key' string value as data key
+			if !structure.IsDirectory(fmt.Sprintf("%v", key)) {
+				dataKey := fmt.Sprintf("%v", value)
+				callback(path, dataKey, "")
+				continue
+			}
 
 			RefineYamlItems(value, path, callback)
 		}

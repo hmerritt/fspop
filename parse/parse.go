@@ -30,12 +30,12 @@ func ParseAndRefineYaml(data []byte) *structure.FspopStructure {
 	return refined
 }
 
-/*
- * Parse YAML byte array (fetch not included)
- * parses into an intermediary structure
- * this structure is messy and needs to be
- * refinded before any real use.
- */
+//
+// Parse YAML byte array (fetch not included)
+//
+// Parses into an intermediary structure, this structure is messy
+// and needs to be refinded before any real use.
+//
 func ParseYaml(data []byte) (structure.YamlStructure, error) {
 	// Define structure
 	structure := structure.YamlStructure{}
@@ -49,11 +49,10 @@ func ParseYaml(data []byte) (structure.YamlStructure, error) {
 	return structure, nil
 }
 
-/*
- * Refine the messy intermediary YamlStructure
- * into an organsized, searchable structure
- * which is used from here-on-out.
- */
+//
+// Refine the messy intermediary YamlStructure into an organsized,
+// searchable structure which is used from here-on-out.
+//
 func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStructure {
 	refinedStructure := &structure.FspopStructure{
 		Version: parsedYamlStructure.Version,
@@ -85,12 +84,11 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStr
 	return refinedStructure
 }
 
-/*
- * Crawl through the 'structure:' items key in the
- * messy parsed yaml figuring out whats-what and
- * organising it one item at a time.
- * Will detect and output file data and dynamic keys
- */
+//
+// Crawl through the 'structure:' items key in the messy parsed yaml
+// figuring out whats-what and organising it one item at a time.
+// Will detect and output file data and dynamic keys
+//
 func RefineYamlItems(structureInterface interface{}, pathStart structure.FspopPath, callback func(structure.FspopPath, string, string)) {
 	// Unique path for each iteration
 	// path := *structure.CreateFspopPath(pathStart.Path)

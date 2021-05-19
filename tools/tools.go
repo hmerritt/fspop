@@ -6,6 +6,7 @@
 
 package tools
 
+//go:generate go install github.com/mitchellh/gox
 import (
 	_ "github.com/mitchellh/gox"
 )

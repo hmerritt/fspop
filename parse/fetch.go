@@ -16,8 +16,8 @@ func UseUrl(path string) bool {
 }
 
 func FileExists(path string) bool {
-	_, err := os.Stat(path)
-	return err == nil
+	stat, err := os.Stat(path)
+	return err == nil && !stat.IsDir()
 }
 
 func FetchYaml(path string) ([]byte, error) {

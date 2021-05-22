@@ -62,13 +62,20 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStr
 		Items:   make(map[string]*structure.FspopItem),
 	}
 
-	// TODO: Refine 'Data'
+	// Refine 'Data'
+	callbackData := func(fsData structure.FspopData) {
+		refinedStructure.Data[fsData.Key] = &fsData
+	}
+
+	// Refine structure items
+	RefineYamlData(parsedYamlStructure.Data, callbackData)
+
 	// TODO: Refine 'Dynamic'
 
 	// Setup structure items
 	fsPath := *structure.CreateFspopPath([]string{})
 
-	callback := func(path structure.FspopPath, dataKey string, dynamicKey string) {
+	callbackItem := func(path structure.FspopPath, dataKey string, dynamicKey string) {
 		refinedStructure.Items[path.ToString()] = &structure.FspopItem{
 			Path:       path,
 			DataKey:    dataKey,
@@ -77,11 +84,27 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStr
 	}
 
 	// Refine structure items
-	RefineYamlItems(parsedYamlStructure.Structure, fsPath, callback)
+	RefineYamlItems(parsedYamlStructure.Structure, fsPath, callbackItem)
 
 	// TODO: build directory tree structure
 
 	return refinedStructure
+}
+
+//
+// Refine 'data:' key in yaml structure file
+//
+func RefineYamlData(structureData interface{}, callback func(structure.FspopData)) {
+	// Iterate each map individually
+	for _, dataMap := range structureData.([]interface{}) {
+		// Get key and value from map
+		for key, value := range dataMap.(map[interface{}]interface{}) {
+			callback(structure.FspopData{
+				Key:  fmt.Sprint(key),
+				Data: fmt.Sprint(value),
+			})
+		}
+	}
 }
 
 //

@@ -35,10 +35,12 @@ func (c *DisplayCommand) Run(args []string) int {
 	var path string
 
 	if len(args) == 0 {
+		// Use default structure file
+		// Checks for both '.yaml' and '.yml' extensions
+		path = parse.AddYamlExtension(parse.ElasticExtension(parse.DefaultYamlFileName))
 		message.Warn("No file entered.")
-		message.Warn("Trying default '" + parse.DefaultYamlFile + "' instead.")
+		message.Warn("Trying default '" + path + "' instead.")
 		message.Text("")
-		path = parse.DefaultYamlFile
 	} else {
 		path = parse.ElasticExtension(args[0])
 	}
@@ -76,7 +78,7 @@ func (c *DisplayCommand) Run(args []string) int {
 	fsStructure := parse.ParseAndRefineYaml(fileData)
 
 	// Single-depth slice to store all nodes + their tree instance
-	treeNodes := make(map[string]*gotree.Tree)
+	treeNodes := make(map[string]*gotree.Tree, len(fsStructure.Items))
 
 	// Attempt to build tree structure from FspopStructure.Items
 	// Initialise tree struct

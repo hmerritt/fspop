@@ -62,19 +62,20 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStr
 		Items:   make(map[string]*structure.FspopItem),
 	}
 
-	// Refine 'Data'
+	// Refine 'data:' items
 	callbackData := func(fsData structure.FspopData) {
 		refinedStructure.Data[fsData.Key] = &fsData
 	}
-
-	// Refine structure items
 	RefineYamlData(parsedYamlStructure.Data, callbackData)
 
-	// TODO: Refine 'Dynamic'
+	// Refine 'dynamic:' items
+	callbackDynamic := func(fsDynamic *structure.FspopDynamic) {
+		refinedStructure.Dynamic[fsDynamic.Key] = fsDynamic
+	}
+	RefineYamlDynamic(parsedYamlStructure.Dynamic, callbackDynamic)
 
 	// Setup structure items
 	fsPath := *structure.CreateFspopPath([]string{})
-
 	callbackItem := func(path structure.FspopPath, dataKey string, dynamicKey string) {
 		refinedStructure.Items[path.ToString()] = &structure.FspopItem{
 			Path:       path,
@@ -82,8 +83,7 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStr
 			DynamicKey: dynamicKey,
 		}
 	}
-
-	// Refine structure items
+	// Refine 'structure:' items
 	RefineYamlItems(parsedYamlStructure.Structure, fsPath, callbackItem)
 
 	// TODO: build directory tree structure
@@ -103,6 +103,46 @@ func RefineYamlData(structureData interface{}, callback func(structure.FspopData
 				Key:  fmt.Sprint(key),
 				Data: fmt.Sprint(value),
 			})
+		}
+	}
+}
+
+//
+// Refine 'dynamic:' key in yaml structure file
+//
+func RefineYamlDynamic(structureDynamic interface{}, callback func(*structure.FspopDynamic)) {
+	// Iterate each map individually
+	for _, dynamicMap := range structureDynamic.([]interface{}) {
+		// Get dynamic key and it's values in map form
+		for key, dynamicItemMap := range dynamicMap.(map[interface{}]interface{}) {
+			// Create dynamic key struct
+			fsDynamic := structure.FspopDynamic{
+				Key: fmt.Sprint(key),
+			}
+
+			// Iterate all dynamic values
+			for _, dynamicValueMap := range dynamicItemMap.([]interface{}) {
+				// Get dynamic item variables from map
+				for variable, value := range dynamicValueMap.(map[interface{}]interface{}) {
+					// Ditermine variable name and place value in the correct place
+					switch strings.ToLower(fmt.Sprint(variable)) {
+					case "amount":
+						fsDynamic.Count = value.(int)
+					case "count":
+						fsDynamic.Count = value.(int)
+					case "data":
+						fsDynamic.DataKey = fmt.Sprint(value)
+					case "type":
+						fsDynamic.Type = fmt.Sprint(value)
+					case "name":
+						fsDynamic.Name = fmt.Sprint(value)
+					case "padded":
+						fsDynamic.Padded = value.(bool)
+					}
+				}
+			}
+
+			callback(&fsDynamic)
 		}
 	}
 }

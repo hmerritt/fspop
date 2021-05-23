@@ -18,12 +18,12 @@ type FspopData struct {
 }
 
 type FspopDynamic struct {
-	Key    string
-	Count  int
-	Data   FspopData
-	Type   string
-	Name   string
-	Padded bool
+	Key     string
+	Count   int
+	DataKey string
+	Type    string
+	Name    string
+	Padded  bool
 }
 
 type FspopItem struct {

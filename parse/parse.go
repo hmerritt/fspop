@@ -3,6 +3,7 @@ package parse
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"gitlab.com/merrittcorp/fspop/message"
 	"gitlab.com/merrittcorp/fspop/structure"
@@ -29,12 +30,12 @@ func ParseAndRefineYaml(data []byte) *structure.FspopStructure {
 	return refined
 }
 
-/*
- * Parse YAML byte array (fetch not included)
- * parses into an intermediary structure
- * this structure is messy and needs to be
- * refinded before any real use.
- */
+//
+// Parse YAML byte array (fetch not included)
+//
+// Parses into an intermediary structure, this structure is messy
+// and needs to be refinded before any real use.
+//
 func ParseYaml(data []byte) (structure.YamlStructure, error) {
 	// Define structure
 	structure := structure.YamlStructure{}
@@ -48,11 +49,10 @@ func ParseYaml(data []byte) (structure.YamlStructure, error) {
 	return structure, nil
 }
 
-/*
- * Refine the messy intermediary YamlStructure
- * into an organsized, searchable structure
- * which is used from here-on-out.
- */
+//
+// Refine the messy intermediary YamlStructure into an organsized,
+// searchable structure which is used from here-on-out.
+//
 func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStructure {
 	refinedStructure := &structure.FspopStructure{
 		Version: parsedYamlStructure.Version,
@@ -62,27 +62,97 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStr
 		Items:   make(map[string]*structure.FspopItem),
 	}
 
+	// Refine 'data:' items
+	callbackData := func(fsData structure.FspopData) {
+		refinedStructure.Data[fsData.Key] = &fsData
+	}
+	RefineYamlData(parsedYamlStructure.Data, callbackData)
+
+	// Refine 'dynamic:' items
+	callbackDynamic := func(fsDynamic *structure.FspopDynamic) {
+		refinedStructure.Dynamic[fsDynamic.Key] = fsDynamic
+	}
+	RefineYamlDynamic(parsedYamlStructure.Dynamic, callbackDynamic)
+
 	// Setup structure items
 	fsPath := *structure.CreateFspopPath([]string{})
-
-	callback := func(path structure.FspopPath) {
+	callbackItem := func(path structure.FspopPath, dataKey string, dynamicKey string) {
 		refinedStructure.Items[path.ToString()] = &structure.FspopItem{
-			Path: path,
+			Path:       path,
+			DataKey:    dataKey,
+			DynamicKey: dynamicKey,
 		}
 	}
-
-	// Refine structure items
-	RefineYamlItems(parsedYamlStructure.Structure, fsPath, callback)
+	// Refine 'structure:' items
+	RefineYamlItems(parsedYamlStructure.Structure, fsPath, callbackItem)
 
 	// TODO: build directory tree structure
-
-	// TODO: Refine 'Data'
-	// TODO: Refine 'Dynamic'
 
 	return refinedStructure
 }
 
-func RefineYamlItems(structureInterface interface{}, pathStart structure.FspopPath, callback func(structure.FspopPath)) {
+//
+// Refine 'data:' key in yaml structure file
+//
+func RefineYamlData(structureData interface{}, callback func(structure.FspopData)) {
+	// Iterate each map individually
+	for _, dataMap := range structureData.([]interface{}) {
+		// Get key and value from map
+		for key, value := range dataMap.(map[interface{}]interface{}) {
+			callback(structure.FspopData{
+				Key:  fmt.Sprint(key),
+				Data: fmt.Sprint(value),
+			})
+		}
+	}
+}
+
+//
+// Refine 'dynamic:' key in yaml structure file
+//
+func RefineYamlDynamic(structureDynamic interface{}, callback func(*structure.FspopDynamic)) {
+	// Iterate each map individually
+	for _, dynamicMap := range structureDynamic.([]interface{}) {
+		// Get dynamic key and it's values in map form
+		for key, dynamicItemMap := range dynamicMap.(map[interface{}]interface{}) {
+			// Create dynamic key struct
+			fsDynamic := structure.FspopDynamic{
+				Key: fmt.Sprint(key),
+			}
+
+			// Iterate all dynamic values
+			for _, dynamicValueMap := range dynamicItemMap.([]interface{}) {
+				// Get dynamic item variables from map
+				for variable, value := range dynamicValueMap.(map[interface{}]interface{}) {
+					// Ditermine variable name and place value in the correct place
+					switch strings.ToLower(fmt.Sprint(variable)) {
+					case "amount":
+						fsDynamic.Count = value.(int)
+					case "count":
+						fsDynamic.Count = value.(int)
+					case "data":
+						fsDynamic.DataKey = fmt.Sprint(value)
+					case "type":
+						fsDynamic.Type = fmt.Sprint(value)
+					case "name":
+						fsDynamic.Name = fmt.Sprint(value)
+					case "padded":
+						fsDynamic.Padded = value.(bool)
+					}
+				}
+			}
+
+			callback(&fsDynamic)
+		}
+	}
+}
+
+//
+// Crawl through the 'structure:' items key in the messy parsed yaml
+// figuring out whats-what and organising it one item at a time.
+// Will detect and output file data and dynamic keys
+//
+func RefineYamlItems(structureInterface interface{}, pathStart structure.FspopPath, callback func(structure.FspopPath, string, string)) {
 	// Unique path for each iteration
 	// path := *structure.CreateFspopPath(pathStart.Path)
 	path := structure.FspopPath{
@@ -91,9 +161,18 @@ func RefineYamlItems(structureInterface interface{}, pathStart structure.FspopPa
 
 	switch structureInterface.(type) {
 	case string:
+		itemName := fmt.Sprintf("%v", structureInterface)
+		dynamicKey := ""
+
 		// File or Directory name
-		path.Append(fmt.Sprintf("%v", structureInterface))
-		callback(path)
+		path.Append(itemName)
+
+		// Check for a dynamic key
+		if !structure.IsDirectory(itemName) && strings.HasPrefix(itemName, "$") {
+			dynamicKey = itemName
+		}
+
+		callback(path, "", dynamicKey)
 
 	case []interface{}:
 		// Use type assertion to loop over []interface{}
@@ -109,6 +188,14 @@ func RefineYamlItems(structureInterface interface{}, pathStart structure.FspopPa
 			// prevents 'path' being carried forward and messing
 			// with the callback later.
 			path.Append(fmt.Sprintf("%v", key))
+
+			// Check for file with a data variable
+			// Use 'key' string value as data key
+			if !structure.IsDirectory(fmt.Sprintf("%v", key)) {
+				dataKey := fmt.Sprintf("%v", value)
+				callback(path, dataKey, "")
+				continue
+			}
 
 			RefineYamlItems(value, path, callback)
 		}

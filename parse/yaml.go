@@ -1,13 +1,15 @@
 package parse
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 )
 
 var YamlExtensions = [2]string{".yaml", ".yml"}
 
-var DefaultYamlFile = "structure.yml"
+var DefaultYamlFileName = "structure"
+var DefaultYamlFile = fmt.Sprintf("%s.%s", DefaultYamlFileName, YamlExtensions[1])
 
 func FileExtension(filename string) string {
 	return filepath.Ext(filename)
@@ -35,11 +37,14 @@ func ElasticExtension(filename string) string {
 		return filename
 	}
 
-	elastic := AddYamlExtension(filename)
-
-	if FileExists(elastic) {
-		return elastic
-	} else {
-		return filename
+	// Check for an existing file using all yaml extensions
+	for yamlExtIndex := range YamlExtensions {
+		elastic := filename + YamlExtensions[yamlExtIndex]
+		if FileExists(elastic) {
+			return elastic
+		}
 	}
+
+	// Return original filename if nothing found
+	return filename
 }

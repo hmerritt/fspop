@@ -80,10 +80,10 @@ func (fsPath *FspopPath) Name() string {
 	return strings.TrimSuffix(fsPath.Last(), "/")
 }
 
-/*
- * Returns slice of path strings which include eachother
- * with each iteration.
- */
+//
+// Returns slice of path strings which include eachother
+// with each iteration.
+//
 func (fsPath *FspopPath) PathProgressive() []string {
 	if fsPath.IsEmpty() {
 		return []string{}

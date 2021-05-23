@@ -18,12 +18,12 @@ type FspopData struct {
 }
 
 type FspopDynamic struct {
-	Key    string
-	Count  int
-	Data   FspopData
-	Type   string
-	Name   string
-	Padded bool
+	Key     string
+	Count   int
+	DataKey string
+	Type    string
+	Name    string
+	Padded  bool
 }
 
 type FspopItem struct {
@@ -51,9 +51,9 @@ func StandardizeDirectory(path string) string {
 	return path
 }
 
-/*
- * Checks if a path exists in Items
- */
+//
+// Checks if a path exists in Items
+//
 func (fsStruct *FspopStructure) Exists(pathToFind *FspopPath) bool {
 	if _, ok := fsStruct.Items[pathToFind.ToString()]; ok {
 		return true
@@ -62,11 +62,20 @@ func (fsStruct *FspopStructure) Exists(pathToFind *FspopPath) bool {
 	}
 }
 
-/*
- * Crawl
- */
+//
+// Crawl each value in a structure
+//
 func (fsStruct *FspopStructure) Crawl(callback func(string, FspopItem)) {
 	for k, v := range fsStruct.Items {
 		callback(k, *v)
 	}
+}
+
+//
+// Count endpoints
+//
+// Ideally, this would count all unique nodes not just endpoints.
+//
+func (fsStruct *FspopStructure) Count() int {
+	return len(fsStruct.Items)
 }

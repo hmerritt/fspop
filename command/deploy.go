@@ -2,11 +2,13 @@ package command
 
 import (
 	"fmt"
+	"os"
 	"strings"
-	"time"
 
+	"github.com/imroc/req"
 	"gitlab.com/merrittcorp/fspop/message"
 	"gitlab.com/merrittcorp/fspop/parse"
+	"gitlab.com/merrittcorp/fspop/structure"
 )
 
 type DeployCommand struct{}
@@ -88,9 +90,72 @@ func (c *DeployCommand) Run(args []string) int {
 
 	// Loop each item endpoint
 	// An endpoint can be both a file or directory
-	for _, item := range fsStructure.Items {
-		time.Sleep(200 * time.Millisecond)
-		fmt.Println(item.Path.ToString())
+	for key, item := range fsStructure.Items {
+		// time.Sleep(200 * time.Millisecond)
+
+		// if strings.HasPrefix(key, "folder/sub/sub-sub") {
+		// 	fmt.Println(item.Path.Path, key)
+		// }
+
+		// Detect a dynamic item
+		// Dynamic items are special and treated separately
+		if len(item.DynamicKey) > 0 {
+			// // Check if item 'DynamicKey' actually exists
+			// if fsDynamicItem, ok := fsStructure.Dynamic[item.DynamicKey]; ok {
+			// 	fmt.Println(key, fsDynamicItem)
+			// } else {
+			// 	// Dynamic key does not exist
+			// 	fmt.Println("Dynamic key does not exist")
+			// }
+
+			bar.Add(1)
+			continue
+		}
+
+		// Directory
+		// Check if endpoint is a directory
+		if structure.IsDirectory(key) {
+			// Recursively make all directories
+			// TODO: check and print any errors
+			os.MkdirAll(fmt.Sprintf("%s/%s", fsStructure.Name, key), os.ModePerm)
+
+			bar.Add(1)
+			continue
+		}
+
+		// File
+		// Recursively make all parent directories
+		os.MkdirAll(fmt.Sprintf("%s/%s", fsStructure.Name, item.Path.ParentString()), os.ModePerm)
+
+		// Create empty file
+		// TODO: check and print any errors
+		newFile, _ := parse.CreateFile(fmt.Sprintf("%s/%s", fsStructure.Name, item.Path.ToString()))
+
+		// Check if file has a data key
+		if len(item.DataKey) > 0 {
+			// Check if item 'DataKey' actually exists
+			if fsDataItem, ok := fsStructure.Data[item.DataKey]; ok {
+				// Is URL
+				if parse.UseUrl(fsDataItem.Data) {
+					// Fetch URL data
+					dataFromURL, _ := req.Get(fsDataItem.Data)
+					// dataFromURL, _ := parse.FetchUrl(fsDataItem.Data)
+					newFile.Write(dataFromURL.Bytes())
+
+				} else if parse.FileExists(fsDataItem.Data) {
+					// Load file data and place into new file
+					dataFromFile, _ := parse.FetchFile(fsDataItem.Data)
+					newFile.Write(dataFromFile)
+
+				} else {
+					// Treat data as plain text
+					newFile.WriteString(fsDataItem.Data)
+				}
+			}
+		}
+
+		newFile.Close()
+
 		bar.Add(1)
 	}
 

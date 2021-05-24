@@ -52,4 +52,10 @@ func FetchUrl(url string) ([]byte, error) {
 	return content, nil
 }
 
+// Create file and return open file object
+func CreateFile(path string) (*os.File, error) {
+	file, err := os.OpenFile(path, os.O_RDONLY|os.O_CREATE, 0644)
+	return file, err
+}
+
 //func HttpStatusCodeError

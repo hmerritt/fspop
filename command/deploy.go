@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
-	"github.com/imroc/req"
 	"gitlab.com/merrittcorp/fspop/message"
 	"gitlab.com/merrittcorp/fspop/parse"
 	"gitlab.com/merrittcorp/fspop/structure"
@@ -76,6 +76,8 @@ func (c *DeployCommand) Run(args []string) int {
 		}
 	}
 
+	timeStart := time.Now()
+
 	fsStructure := parse.ParseAndRefineYaml(fileData)
 
 	// Print structure stats
@@ -92,10 +94,6 @@ func (c *DeployCommand) Run(args []string) int {
 	// An endpoint can be both a file or directory
 	for key, item := range fsStructure.Items {
 		// time.Sleep(200 * time.Millisecond)
-
-		// if strings.HasPrefix(key, "folder/sub/sub-sub") {
-		// 	fmt.Println(item.Path.Path, key)
-		// }
 
 		// Detect a dynamic item
 		// Dynamic items are special and treated separately
@@ -138,9 +136,9 @@ func (c *DeployCommand) Run(args []string) int {
 				// Is URL
 				if parse.UseUrl(fsDataItem.Data) {
 					// Fetch URL data
-					dataFromURL, _ := req.Get(fsDataItem.Data)
-					// dataFromURL, _ := parse.FetchUrl(fsDataItem.Data)
-					newFile.Write(dataFromURL.Bytes())
+					// dataFromURL, _ := req.Get(fsDataItem.Data)
+					dataFromURL, _ := parse.FetchUrl(fsDataItem.Data)
+					newFile.Write(dataFromURL)
 
 				} else if parse.FileExists(fsDataItem.Data) {
 					// Load file data and place into new file
@@ -158,6 +156,10 @@ func (c *DeployCommand) Run(args []string) int {
 
 		bar.Add(1)
 	}
+
+	fmt.Println()
+	fmt.Println()
+	fmt.Printf("%s in %s", message.Green("Structure deployed"), time.Since(timeStart))
 
 	return 0
 }

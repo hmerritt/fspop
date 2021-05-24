@@ -1,6 +1,7 @@
 
 **/*.exe
 **/fspop
+sandbox/
 
 bin/
 dist/

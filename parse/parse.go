@@ -119,7 +119,8 @@ func RefineYamlDynamic(structureDynamic interface{}, callback func(*structure.Fs
 			fsDynamic := structure.FspopDynamic{
 				// Make sure key has '$' prefix
 				// Removes exsting '$' and then adds it back
-				Key: fmt.Sprintf("$%s", strings.TrimPrefix(fmt.Sprint(key), "$")),
+				Key:   fmt.Sprintf("$%s", strings.TrimPrefix(fmt.Sprint(key), "$")),
+				Start: 1,
 			}
 
 			// Iterate all dynamic values
@@ -140,6 +141,8 @@ func RefineYamlDynamic(structureDynamic interface{}, callback func(*structure.Fs
 						fsDynamic.Name = fmt.Sprint(value)
 					case "padded":
 						fsDynamic.Padded = value.(bool)
+					case "start":
+						fsDynamic.Start = value.(int)
 					}
 				}
 			}

@@ -16,7 +16,8 @@ require (
 	github.com/mitchellh/copystructure v1.1.2 // indirect
 	github.com/mitchellh/gox v1.0.1
 	github.com/posener/complete v1.2.3 // indirect
-	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b // indirect
-	golang.org/x/sys v0.0.0-20210421221651-33663a62ff08 // indirect
+	github.com/schollz/progressbar/v3 v3.8.1
+	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
+	golang.org/x/sys v0.0.0-20210521203332-0cec03c779c1 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )

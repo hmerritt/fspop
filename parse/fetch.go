@@ -2,9 +2,10 @@ package parse
 
 import (
 	"errors"
-	"net/http"
 	"os"
 	"strings"
+
+	"github.com/imroc/req"
 )
 
 func IsUrl(path string) bool {
@@ -34,22 +35,18 @@ func FetchFile(filepath string) ([]byte, error) {
 }
 
 func FetchUrl(url string) ([]byte, error) {
-	res, err := http.Get(url)
+	res, err := req.Get(url)
 	if err != nil {
 		return nil, err
 	}
 
-	if !strings.HasPrefix(res.Status, "1") && !strings.HasPrefix(res.Status, "2") {
-		return nil, errors.New("request returned a bad http status code: " + res.Status + ".")
+	resStatus := res.Response().Status
+
+	if !strings.HasPrefix(resStatus, "1") && !strings.HasPrefix(resStatus, "2") {
+		return nil, errors.New("request returned a bad http status code: " + resStatus + ".")
 	}
 
-	content := make([]byte, res.ContentLength)
-	_, err = res.Body.Read(content)
-	if err != nil {
-		return nil, err
-	}
-
-	return content, nil
+	return res.Bytes(), nil
 }
 
 // Create file and return open file object

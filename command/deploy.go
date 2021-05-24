@@ -133,7 +133,12 @@ func (c *DeployCommand) Run(args []string) int {
 				// n = fsDynamicItem.Count = user defined
 				for i := 1; i < (fsDynamicItem.Count + 1); i++ {
 					// Build file/directory name
-					itemName := strings.ReplaceAll(fsDynamicItem.Name, "$num", fmt.Sprint(i))
+					itemCountPadWidth := 1
+					if fsDynamicItem.Padded {
+						itemCountPadWidth = len(fmt.Sprint(fsDynamicItem.Count))
+					}
+					itemCountPadded := fmt.Sprintf("%0*d", itemCountPadWidth, i)
+					itemName := strings.ReplaceAll(fsDynamicItem.Name, "$num", itemCountPadded)
 					itemParentPath := fmt.Sprintf("%s/%s/", fsStructure.Name, item.Path.ParentString())
 					itemPath := fmt.Sprintf("%s/%s", itemParentPath, itemName)
 

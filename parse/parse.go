@@ -117,7 +117,9 @@ func RefineYamlDynamic(structureDynamic interface{}, callback func(*structure.Fs
 		for key, dynamicItemMap := range dynamicMap.(map[interface{}]interface{}) {
 			// Create dynamic key struct
 			fsDynamic := structure.FspopDynamic{
-				Key: fmt.Sprint(key),
+				// Make sure key has '$' prefix
+				// Removes exsting '$' and then adds it back
+				Key: fmt.Sprintf("$%s", strings.TrimPrefix(fmt.Sprint(key), "$")),
 			}
 
 			// Iterate all dynamic values
@@ -133,7 +135,7 @@ func RefineYamlDynamic(structureDynamic interface{}, callback func(*structure.Fs
 					case "data":
 						fsDynamic.DataKey = fmt.Sprint(value)
 					case "type":
-						fsDynamic.Type = fmt.Sprint(value)
+						fsDynamic.Type = strings.ToLower(fmt.Sprint(value))
 					case "name":
 						fsDynamic.Name = fmt.Sprint(value)
 					case "padded":

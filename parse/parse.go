@@ -76,15 +76,15 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStr
 
 	// Setup structure items
 	fsPath := *structure.CreateFspopPath([]string{})
-	callbackItem := func(path structure.FspopPath, dataKey string, dynamicKey string) {
-		refinedStructure.Items[path.ToString()] = &structure.FspopItem{
-			Path:       path,
-			DataKey:    dataKey,
-			DynamicKey: dynamicKey,
-		}
-	}
+	// callbackItem := func(path structure.FspopPath, dataKey string, dynamicKey string) {
+	// 	refinedStructure.Items[path.ToString()] = &structure.FspopItem{
+	// 		Path:       path,
+	// 		DataKey:    dataKey,
+	// 		DynamicKey: dynamicKey,
+	// 	}
+	// }
 	// Refine 'structure:' items
-	RefineYamlItems(parsedYamlStructure.Structure, fsPath, callbackItem)
+	RefineYamlItems(parsedYamlStructure.Structure, fsPath, refinedStructure)
 
 	// TODO: build directory tree structure
 
@@ -154,11 +154,13 @@ func RefineYamlDynamic(structureDynamic interface{}, callback func(*structure.Fs
 // figuring out whats-what and organising it one item at a time.
 // Will detect and output file data and dynamic keys
 //
-func RefineYamlItems(structureInterface interface{}, pathStart structure.FspopPath, callback func(structure.FspopPath, string, string)) {
+func RefineYamlItems(structureInterface interface{}, pathStart structure.FspopPath, refinedStructure *structure.FspopStructure) {
 	// Unique path for each iteration
 	// path := *structure.CreateFspopPath(pathStart.Path)
+	newPath := make([]string, len(pathStart.Path))
+	copy(newPath, pathStart.Path)
 	path := structure.FspopPath{
-		Path: pathStart.Path,
+		Path: newPath,
 	}
 
 	switch structureInterface.(type) {
@@ -174,12 +176,17 @@ func RefineYamlItems(structureInterface interface{}, pathStart structure.FspopPa
 			dynamicKey = itemName
 		}
 
-		callback(path, "", dynamicKey)
+		// callback(path, "", dynamicKey)
+		refinedStructure.Items[path.ToString()] = &structure.FspopItem{
+			Path:       path,
+			DataKey:    "",
+			DynamicKey: dynamicKey,
+		}
 
 	case []interface{}:
 		// Use type assertion to loop over []interface{}
 		for _, v := range structureInterface.([]interface{}) {
-			RefineYamlItems(v, path, callback)
+			RefineYamlItems(v, path, refinedStructure)
 		}
 
 	case map[interface{}]interface{}:
@@ -195,11 +202,16 @@ func RefineYamlItems(structureInterface interface{}, pathStart structure.FspopPa
 			// Use 'key' string value as data key
 			if !structure.IsDirectory(fmt.Sprintf("%v", key)) {
 				dataKey := fmt.Sprintf("%v", value)
-				callback(path, dataKey, "")
+				// callback(path, dataKey, "")
+				refinedStructure.Items[path.ToString()] = &structure.FspopItem{
+					Path:       path,
+					DataKey:    dataKey,
+					DynamicKey: "",
+				}
 				continue
 			}
 
-			RefineYamlItems(value, path, callback)
+			RefineYamlItems(value, path, refinedStructure)
 		}
 	}
 }

@@ -75,5 +75,12 @@ func (c *DeployCommand) Run(args []string) int {
 
 	fsStructure := parse.ParseAndRefineYaml(fileData)
 
+	// Print structure stats
+	message.Info("Structure File")
+	message.Text("├── Data Variables       " + fmt.Sprint(len(fsStructure.Data)))
+	message.Text("├── Dynamic Variables    " + fmt.Sprint(len(fsStructure.Dynamic)))
+	message.Text("└── Structure Endpoints  " + fmt.Sprint(len(fsStructure.Items)))
+	message.Text("")
+
 	return 0
 }

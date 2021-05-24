@@ -3,6 +3,7 @@ package command
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"gitlab.com/merrittcorp/fspop/message"
 	"gitlab.com/merrittcorp/fspop/parse"
@@ -81,6 +82,17 @@ func (c *DeployCommand) Run(args []string) int {
 	message.Text("├── Dynamic Variables    " + fmt.Sprint(len(fsStructure.Dynamic)))
 	message.Text("└── Structure Endpoints  " + fmt.Sprint(len(fsStructure.Items)))
 	message.Text("")
+
+	// Initiate progress bar
+	bar := message.GetProgressBar(len(fsStructure.Items), " Deploying")
+
+	// Loop each item endpoint
+	// An endpoint can be both a file or directory
+	for _, item := range fsStructure.Items {
+		time.Sleep(200 * time.Millisecond)
+		fmt.Println(item.Path.ToString())
+		bar.Add(1)
+	}
 
 	return 0
 }

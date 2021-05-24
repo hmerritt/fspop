@@ -98,10 +98,67 @@ func (c *DeployCommand) Run(args []string) int {
 		// Detect a dynamic item
 		// Dynamic items are special and treated separately
 		if len(item.DynamicKey) > 0 {
-			// // Check if item 'DynamicKey' actually exists
-			// if fsDynamicItem, ok := fsStructure.Dynamic[item.DynamicKey]; ok {
-			// 	fmt.Println(key, fsDynamicItem)
-			// } else {
+			// Check if item 'DynamicKey' actually exists
+			if fsDynamicItem, ok := fsStructure.Dynamic[item.DynamicKey]; ok {
+				// Create empty fileData
+				fileData := make([]byte, 0)
+
+				// If dynamic item has type 'file'
+				// Load file data before creating items
+				if !strings.HasPrefix(fsDynamicItem.Type, "dir") || !strings.HasPrefix(fsDynamicItem.Type, "fol") {
+					// Check if file has a data key
+					if len(fsDynamicItem.DataKey) > 0 {
+						// Check if item 'DataKey' actually exists
+						if fsDataItem, ok := fsStructure.Data[fsDynamicItem.DataKey]; ok {
+							// Is URL
+							if parse.UseUrl(fsDataItem.Data) {
+								// Fetch URL data
+								dataFromURL, _ := parse.FetchUrl(fsDataItem.Data)
+								fileData = dataFromURL
+
+							} else if parse.FileExists(fsDataItem.Data) {
+								// Load file data and place into new file
+								dataFromFile, _ := parse.FetchFile(fsDataItem.Data)
+								fileData = dataFromFile
+
+							} else {
+								// Treat data as plain text
+								fileData = []byte(fsDataItem.Data)
+							}
+						}
+					}
+				}
+
+				// Loop n times
+				// n = fsDynamicItem.Count = user defined
+				for i := 1; i < (fsDynamicItem.Count + 1); i++ {
+					// Build file/directory name
+					itemName := strings.ReplaceAll(fsDynamicItem.Name, "$num", fmt.Sprint(i))
+					itemParentPath := fmt.Sprintf("%s/%s/", fsStructure.Name, item.Path.ParentString())
+					itemPath := fmt.Sprintf("%s/%s", itemParentPath, itemName)
+
+					// Is directory
+					if strings.HasPrefix(fsDynamicItem.Type, "dir") || strings.HasPrefix(fsDynamicItem.Type, "fol") {
+						// Create full directory
+						os.MkdirAll(itemPath, os.ModePerm)
+
+						// Is file
+					} else {
+						// Create parent directory
+						os.MkdirAll(itemParentPath, os.ModePerm)
+
+						// Create file
+						// TODO: check and print any errors
+						newFile, _ := parse.CreateFile(itemPath)
+
+						if len(fileData) > 0 {
+							newFile.Write(fileData)
+						}
+
+						newFile.Close()
+					}
+				}
+			} //else {
 			// 	// Dynamic key does not exist
 			// 	fmt.Println("Dynamic key does not exist")
 			// }
@@ -136,7 +193,6 @@ func (c *DeployCommand) Run(args []string) int {
 				// Is URL
 				if parse.UseUrl(fsDataItem.Data) {
 					// Fetch URL data
-					// dataFromURL, _ := req.Get(fsDataItem.Data)
 					dataFromURL, _ := parse.FetchUrl(fsDataItem.Data)
 					newFile.Write(dataFromURL)
 

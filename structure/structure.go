@@ -24,6 +24,7 @@ type FspopDynamic struct {
 	Type    string
 	Name    string
 	Padded  bool
+	Start   int
 }
 
 type FspopItem struct {

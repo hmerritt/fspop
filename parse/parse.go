@@ -66,13 +66,13 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStr
 	callbackData := func(fsData structure.FspopData) {
 		refinedStructure.Data[fsData.Key] = &fsData
 	}
-	RefineYamlData(parsedYamlStructure.Data, callbackData)
+	refineYamlData(parsedYamlStructure.Data, callbackData)
 
 	// Refine 'dynamic:' items
 	callbackDynamic := func(fsDynamic *structure.FspopDynamic) {
 		refinedStructure.Dynamic[fsDynamic.Key] = fsDynamic
 	}
-	RefineYamlDynamic(parsedYamlStructure.Dynamic, callbackDynamic)
+	refineYamlDynamic(parsedYamlStructure.Dynamic, callbackDynamic)
 
 	// Setup structure items
 	fsPath := *structure.CreateFspopPath([]string{})
@@ -84,7 +84,7 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStr
 		}
 	}
 	// Refine 'structure:' items
-	RefineYamlItems(parsedYamlStructure.Structure, fsPath, callbackItem)
+	refineYamlItems(parsedYamlStructure.Structure, fsPath, callbackItem)
 
 	// TODO: build directory tree structure
 
@@ -94,7 +94,7 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStr
 //
 // Refine 'data:' key in yaml structure file
 //
-func RefineYamlData(structureData interface{}, callback func(structure.FspopData)) {
+func refineYamlData(structureData interface{}, callback func(structure.FspopData)) {
 	// Iterate each map individually
 	for _, dataMap := range structureData.([]interface{}) {
 		// Get key and value from map
@@ -110,14 +110,17 @@ func RefineYamlData(structureData interface{}, callback func(structure.FspopData
 //
 // Refine 'dynamic:' key in yaml structure file
 //
-func RefineYamlDynamic(structureDynamic interface{}, callback func(*structure.FspopDynamic)) {
+func refineYamlDynamic(structureDynamic interface{}, callback func(*structure.FspopDynamic)) {
 	// Iterate each map individually
 	for _, dynamicMap := range structureDynamic.([]interface{}) {
 		// Get dynamic key and it's values in map form
 		for key, dynamicItemMap := range dynamicMap.(map[interface{}]interface{}) {
 			// Create dynamic key struct
 			fsDynamic := structure.FspopDynamic{
-				Key: fmt.Sprint(key),
+				// Make sure key has '$' prefix
+				// Removes exsting '$' and then adds it back
+				Key:   fmt.Sprintf("$%s", strings.TrimPrefix(fmt.Sprint(key), "$")),
+				Start: 1,
 			}
 
 			// Iterate all dynamic values
@@ -133,11 +136,13 @@ func RefineYamlDynamic(structureDynamic interface{}, callback func(*structure.Fs
 					case "data":
 						fsDynamic.DataKey = fmt.Sprint(value)
 					case "type":
-						fsDynamic.Type = fmt.Sprint(value)
+						fsDynamic.Type = strings.ToLower(fmt.Sprint(value))
 					case "name":
 						fsDynamic.Name = fmt.Sprint(value)
 					case "padded":
 						fsDynamic.Padded = value.(bool)
+					case "start":
+						fsDynamic.Start = value.(int)
 					}
 				}
 			}
@@ -152,11 +157,11 @@ func RefineYamlDynamic(structureDynamic interface{}, callback func(*structure.Fs
 // figuring out whats-what and organising it one item at a time.
 // Will detect and output file data and dynamic keys
 //
-func RefineYamlItems(structureInterface interface{}, pathStart structure.FspopPath, callback func(structure.FspopPath, string, string)) {
+func refineYamlItems(structureInterface interface{}, pathStart structure.FspopPath, callback func(structure.FspopPath, string, string)) {
 	// Unique path for each iteration
-	// path := *structure.CreateFspopPath(pathStart.Path)
+	// Make a deep copy of path array
 	path := structure.FspopPath{
-		Path: pathStart.Path,
+		Path: deepCopy(pathStart.Path),
 	}
 
 	switch structureInterface.(type) {
@@ -177,7 +182,7 @@ func RefineYamlItems(structureInterface interface{}, pathStart structure.FspopPa
 	case []interface{}:
 		// Use type assertion to loop over []interface{}
 		for _, v := range structureInterface.([]interface{}) {
-			RefineYamlItems(v, path, callback)
+			refineYamlItems(v, path, callback)
 		}
 
 	case map[interface{}]interface{}:
@@ -197,7 +202,14 @@ func RefineYamlItems(structureInterface interface{}, pathStart structure.FspopPa
 				continue
 			}
 
-			RefineYamlItems(value, path, callback)
+			refineYamlItems(value, path, callback)
 		}
 	}
+}
+
+// Make a deep copy of a string slice
+func deepCopy(arr []string) []string {
+	newArr := make([]string, len(arr))
+	copy(newArr, arr)
+	return newArr
 }

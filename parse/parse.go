@@ -62,17 +62,21 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStr
 		Items:   make(map[string]*structure.FspopItem),
 	}
 
-	// Refine 'data:' items
-	callbackData := func(fsData structure.FspopData) {
-		refinedStructure.Data[fsData.Key] = &fsData
+	if parsedYamlStructure.Data != nil {
+		// Refine 'data:' items
+		callbackData := func(fsData structure.FspopData) {
+			refinedStructure.Data[fsData.Key] = &fsData
+		}
+		refineYamlData(parsedYamlStructure.Data, callbackData)
 	}
-	refineYamlData(parsedYamlStructure.Data, callbackData)
 
-	// Refine 'dynamic:' items
-	callbackDynamic := func(fsDynamic *structure.FspopDynamic) {
-		refinedStructure.Dynamic[fsDynamic.Key] = fsDynamic
+	if parsedYamlStructure.Dynamic != nil {
+		// Refine 'dynamic:' items
+		callbackDynamic := func(fsDynamic *structure.FspopDynamic) {
+			refinedStructure.Dynamic[fsDynamic.Key] = fsDynamic
+		}
+		refineYamlDynamic(parsedYamlStructure.Dynamic, callbackDynamic)
 	}
-	refineYamlDynamic(parsedYamlStructure.Dynamic, callbackDynamic)
 
 	// Setup structure items
 	fsPath := *structure.CreateFspopPath([]string{})

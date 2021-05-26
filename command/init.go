@@ -79,25 +79,37 @@ func yamlFileContent() string {
 ###########################
 version: 4
 
-name: fspop-example
+name: fspop-structure
 
 data:
   - example: text can be imported like this
   - data_file: /path/to/file
+  - data_url: https://example.com/data/from/url
+  - data_actual: https://via.placeholder.com/400/771796
 
 dynamic:
   - dyn:
-    - amount: 100
+    - amount: 10
     - data: example
     - type: file
-    - name: fspop_example_$num
+    - name: fspop_$num.dynamic
     - padded: true
+    - start: 95
+
+  - dyn_folders:
+    - amount: 10
+    - type: folder
+    - name: fspop_$num_dynamic
+    - padded: false
+    - start: 5
 
 structure:
   - file.empty
-  - file_data: example
-  - $dyn
-  - /folder:
-    - /sub-folder
+  - file.data: example
+  - image.png: data_actual
+  - /dynamic-items:
+    - /dynamic-folders:
+      - $dyn_folders
+    - $dyn
 `
 }

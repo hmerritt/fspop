@@ -1,6 +1,7 @@
 package parse
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -23,9 +24,15 @@ func ParseAndRefineYaml(data []byte) *structure.FspopStructure {
 	}
 
 	// Refine YAML
-	refined := RefineYaml(yamlStructure)
+	refined, refineErr := RefineYaml(yamlStructure)
 
-	// TODO: catch errors when refining
+	if refineErr != nil {
+		message.Error("Unable to use structure file.")
+		message.Error(fmt.Sprint(refineErr))
+		fmt.Println()
+		message.Warn("Check the structure file is valid and try again.")
+		os.Exit(2)
+	}
 
 	return refined
 }
@@ -53,7 +60,7 @@ func ParseYaml(data []byte) (structure.YamlStructure, error) {
 // Refine the messy intermediary YamlStructure into an organsized,
 // searchable structure which is used from here-on-out.
 //
-func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStructure {
+func RefineYaml(parsedYamlStructure structure.YamlStructure) (*structure.FspopStructure, error) {
 	refinedStructure := &structure.FspopStructure{
 		Version: parsedYamlStructure.Version,
 		Name:    parsedYamlStructure.Name,
@@ -79,20 +86,24 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) *structure.FspopStr
 	}
 
 	// Setup structure items
-	fsPath := *structure.CreateFspopPath([]string{})
-	callbackItem := func(path structure.FspopPath, dataKey string, dynamicKey string) {
-		refinedStructure.Items[path.ToString()] = &structure.FspopItem{
-			Path:       path,
-			DataKey:    dataKey,
-			DynamicKey: dynamicKey,
+	if parsedYamlStructure.Structure != nil {
+		fsPath := *structure.CreateFspopPath([]string{})
+		callbackItem := func(path structure.FspopPath, dataKey string, dynamicKey string) {
+			refinedStructure.Items[path.ToString()] = &structure.FspopItem{
+				Path:       path,
+				DataKey:    dataKey,
+				DynamicKey: dynamicKey,
+			}
 		}
+		// Refine 'structure:' items
+		refineYamlItems(parsedYamlStructure.Structure, fsPath, callbackItem)
+	} else {
+		return refinedStructure, errors.New("structure key not found in config file")
 	}
-	// Refine 'structure:' items
-	refineYamlItems(parsedYamlStructure.Structure, fsPath, callbackItem)
 
 	// TODO: build directory tree structure
 
-	return refinedStructure
+	return refinedStructure, nil
 }
 
 //

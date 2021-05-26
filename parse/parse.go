@@ -37,12 +37,10 @@ func ParseAndRefineYaml(data []byte) *structure.FspopStructure {
 	return refined
 }
 
-//
 // Parse YAML byte array (fetch not included)
 //
 // Parses into an intermediary structure, this structure is messy
 // and needs to be refinded before any real use.
-//
 func ParseYaml(data []byte) (structure.YamlStructure, error) {
 	// Define structure
 	structure := structure.YamlStructure{}
@@ -56,10 +54,8 @@ func ParseYaml(data []byte) (structure.YamlStructure, error) {
 	return structure, nil
 }
 
-//
 // Refine the messy intermediary YamlStructure into an organsized,
 // searchable structure which is used from here-on-out.
-//
 func RefineYaml(parsedYamlStructure structure.YamlStructure) (*structure.FspopStructure, error) {
 	refinedStructure := &structure.FspopStructure{
 		Version: parsedYamlStructure.Version,
@@ -106,9 +102,7 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) (*structure.FspopSt
 	return refinedStructure, nil
 }
 
-//
 // Refine 'data:' key in yaml structure file
-//
 func refineYamlData(structureData interface{}, callback func(structure.FspopData)) {
 	// Iterate each map individually
 	for _, dataMap := range structureData.([]interface{}) {
@@ -122,9 +116,7 @@ func refineYamlData(structureData interface{}, callback func(structure.FspopData
 	}
 }
 
-//
 // Refine 'dynamic:' key in yaml structure file
-//
 func refineYamlDynamic(structureDynamic interface{}, callback func(*structure.FspopDynamic)) {
 	// Iterate each map individually
 	for _, dynamicMap := range structureDynamic.([]interface{}) {
@@ -167,11 +159,9 @@ func refineYamlDynamic(structureDynamic interface{}, callback func(*structure.Fs
 	}
 }
 
-//
 // Crawl through the 'structure:' items key in the messy parsed yaml
 // figuring out whats-what and organising it one item at a time.
-// Will detect and output file data and dynamic keys
-//
+// Will detect and output file data and dynamic keys.
 func refineYamlItems(structureInterface interface{}, pathStart structure.FspopPath, callback func(structure.FspopPath, string, string)) {
 	// Unique path for each iteration
 	// Make a deep copy of path array

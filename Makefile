@@ -31,7 +31,7 @@ buildlq:
 .PHONY:buildlq
 
 build: vet
-	gox -osarch "linux/386 linux/amd64 linux/arm linux/arm64 windows/386 windows/amd64" \
+	gox -osarch "darwin/amd64 linux/386 linux/amd64 linux/arm linux/arm64 windows/386 windows/amd64" \
 	-ldflags "-s -w" \
 	-tags "fspop"    \
 	-gocmd go        \

@@ -37,19 +37,28 @@ func (c *InitCommand) Run(args []string) int {
 		path = parse.AddYamlExtension(args[0])
 	}
 
-	// TODO: Add actual error reporting
+	// Check if file already exists
+	if parse.FileExists(path) {
+		// Exit. Dont't overwrite existing files
+		message.Error("Structure file '" + path + "' already exists.")
+		fmt.Println()
+		message.Warn("Rename or remove the existing file and try again.")
+		return 1
+	}
 
 	// Create structure file
 	file, err := os.Create(path)
 	if err != nil {
-		fmt.Println(err)
+		message.Error("Unable to create new structure file '" + path + "'.")
+		message.Error(fmt.Sprint(err))
 		return 1
 	}
 
 	// Write content into file
 	_, err = file.WriteString(yamlFileContent())
 	if err != nil {
-		fmt.Println(err)
+		message.Error("Created structure file '" + path + "', but failed to write data into it.")
+		message.Error(fmt.Sprint(err))
 		file.Close()
 		return 1
 	}
@@ -57,7 +66,7 @@ func (c *InitCommand) Run(args []string) int {
 	// Close file
 	err = file.Close()
 	if err != nil {
-		fmt.Println(err)
+		message.Error(fmt.Sprint(err))
 		return 1
 	}
 

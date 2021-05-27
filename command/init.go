@@ -85,6 +85,11 @@ func yamlFileContent() string {
 ##
 ## Usage info:
 ## $ fspop -h
+##
+## my-folder/          - folders need a '/' at the end
+## my-file             - items are assumed to be files (unless there is a '/')
+## data-file: data_var - files can have custum data by assigning a data variable 'file: your_data_variable'
+## $dynamic_item       - dynamic items have a dollar prefix '$' + 'your_dynamic_variable'
 ###########################
 version: 4
 
@@ -116,8 +121,8 @@ structure:
   - file.empty
   - file.data: example
   - image.png: data_actual
-  - /dynamic-items:
-    - /dynamic-folders:
+  - dynamic-items/:
+    - dynamic-folders/:
       - $dyn_folders
     - $dyn
 `

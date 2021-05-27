@@ -27,7 +27,7 @@ func ParseAndRefineYaml(data []byte) *structure.FspopStructure {
 	refined, refineErr := RefineYaml(yamlStructure)
 
 	if refineErr != nil {
-		message.Error("Unable to use structure file.")
+		message.Error("Structure file is invalid or has missing parts.")
 		message.Error(fmt.Sprint(refineErr))
 		fmt.Println()
 		message.Warn("Check the structure file is valid and try again.")
@@ -63,6 +63,12 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) (*structure.FspopSt
 		Data:    make(map[string]*structure.FspopData),
 		Dynamic: make(map[string]*structure.FspopDynamic),
 		Items:   make(map[string]*structure.FspopItem),
+	}
+
+	// Check if parsed YAML is a valid structure file
+	isValid, isValidErr := structure.IsValid(parsedYamlStructure)
+	if !isValid {
+		return refinedStructure, isValidErr
 	}
 
 	if parsedYamlStructure.Data != nil {

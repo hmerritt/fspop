@@ -46,35 +46,8 @@ func (c *DeployCommand) Run(args []string) int {
 		path = parse.ElasticExtension(args[0])
 	}
 
-	var fileData []byte
-	var fileError error
-
-	// Decide if URL or file
-	if parse.UseUrl(path) {
-		message.Spinner.Start("", " Fetching URL data...")
-
-		fileData, fileError = parse.FetchUrl(path)
-
-		message.Spinner.Stop()
-
-		if fileError != nil {
-			message.Error("Unable to fetch URL data.")
-			message.Error(fmt.Sprint(fileError))
-			fmt.Println()
-			message.Warn("Make sure the link is accessible and try again.")
-			return 2
-		}
-	} else {
-		fileData, fileError = parse.FetchFile(path)
-
-		if fileError != nil {
-			message.Error("Unable to open file.")
-			message.Error(fmt.Sprint(fileError))
-			fmt.Println()
-			message.Warn("Check the file is exists and try again.")
-			return 2
-		}
-	}
+	// Fetch structure file
+	fileData := parse.FetchYaml(path)
 
 	timeStart := time.Now()
 

@@ -139,6 +139,9 @@ func (c *DeployCommand) Run(args []string) int {
 						itemCountPadWidth = len(fmt.Sprint(fsDynamicItemMaxCount))
 					}
 					itemCountPadded := fmt.Sprintf("%0*d", itemCountPadWidth, i)
+					if !strings.Contains(fsDynamicItem.Name, "$num") {
+						fsDynamicItem.Name = fmt.Sprintf("%s_$num", fsDynamicItem.Name)
+					}
 					itemName := strings.ReplaceAll(fsDynamicItem.Name, "$num", itemCountPadded)
 					itemParentPath := fmt.Sprintf("%s/%s/", fsStructure.Name, item.Path.ParentString())
 					itemPath := fmt.Sprintf("%s/%s", itemParentPath, itemName)

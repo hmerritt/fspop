@@ -132,8 +132,12 @@ func refineYamlDynamic(structureDynamic interface{}, callback func(*structure.Fs
 			fsDynamic := structure.FspopDynamic{
 				// Make sure key has '$' prefix
 				// Removes exsting '$' and then adds it back
-				Key:   fmt.Sprintf("$%s", strings.TrimPrefix(fmt.Sprint(key), "$")),
-				Start: 1,
+				Key:    fmt.Sprintf("$%s", strings.TrimPrefix(fmt.Sprint(key), "$")),
+				Count:  1,
+				Type:   "file",
+				Name:   "$num",
+				Padded: true,
+				Start:  1,
 			}
 
 			// Iterate all dynamic values

@@ -9,22 +9,22 @@ import (
 // Verifies integraty of a structure
 //
 // Checks for required keys and expected types
-func IsValid(parsedYamlStructure YamlStructure) (bool, error) {
+func (fsYamlStruct *YamlStructure) IsValid() (bool, error) {
 	// TODO: return array of all problems (not just bool and first error)
 
 	// Required keys
 
 	// Structure key
-	if parsedYamlStructure.Structure == nil {
+	if fsYamlStruct.Structure == nil {
 		return false, errors.New("'structure:' key not found in structure file")
 	}
 
 	// Expected types
 
 	// Data key, check if it exists
-	if parsedYamlStructure.Data != nil {
+	if fsYamlStruct.Data != nil {
 		// Data key should be an []interface{}
-		dataMapType, ok := parsedYamlStructure.Data.([]interface{})
+		dataMapType, ok := fsYamlStruct.Data.([]interface{})
 		if !ok {
 			return false, errors.New("'data:' key format is invalid")
 		}
@@ -41,9 +41,9 @@ func IsValid(parsedYamlStructure YamlStructure) (bool, error) {
 	}
 
 	// Dynamic key, check if it exists
-	if parsedYamlStructure.Dynamic != nil {
+	if fsYamlStruct.Dynamic != nil {
 		// Dynamic key should be an []interface{}
-		dynamicMapType, ok := parsedYamlStructure.Dynamic.([]interface{})
+		dynamicMapType, ok := fsYamlStruct.Dynamic.([]interface{})
 		if !ok {
 			return false, errors.New("'dynamic:' key format is invalid")
 		}

@@ -74,7 +74,7 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) (*structure.FspopSt
 	}
 
 	// Check if parsed YAML is a valid structure file
-	isValid, isValidErr := structure.IsValid(parsedYamlStructure)
+	isValid, isValidErr := parsedYamlStructure.IsValid()
 	if !isValid {
 		return refinedStructure, isValidErr
 	}

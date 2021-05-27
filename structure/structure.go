@@ -41,6 +41,16 @@ type FspopStructure struct {
 	Items   map[string]*FspopItem
 }
 
+func GetDefaultDynamicItem() *FspopDynamic {
+	return &FspopDynamic{
+		Count:  1,
+		Type:   "file",
+		Name:   "$num",
+		Padded: true,
+		Start:  1,
+	}
+}
+
 func IsDirectory(path string) bool {
 	return (strings.HasPrefix(path, "/") || strings.HasSuffix(path, "/"))
 }

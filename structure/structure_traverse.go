@@ -36,11 +36,11 @@ func (fsYamlStruct *YamlStructure) TraverseDynamic(callback func(FspopDynamic)) 
 		// Get dynamic key and it's values in map form
 		for key, dynamicItemMap := range dynamicMap.(map[interface{}]interface{}) {
 			// Create dynamic key struct
-			fsDynamic := FspopDynamic{
-				// Make sure key has '$' prefix
-				// Removes exsting '$' and then adds it back
-				Key: fmt.Sprintf("$%s", strings.TrimPrefix(fmt.Sprint(key), "$")),
-			}
+			fsDynamic := *GetDefaultDynamicItem()
+
+			// Make sure key has '$' prefix
+			// Removes exsting '$' and then adds it back
+			fsDynamic.Key = fmt.Sprintf("$%s", strings.TrimPrefix(fmt.Sprint(key), "$"))
 
 			// Iterate all dynamic values
 			for _, dynamicValueMap := range dynamicItemMap.([]interface{}) {
@@ -73,7 +73,7 @@ func (fsYamlStruct *YamlStructure) TraverseDynamic(callback func(FspopDynamic)) 
 
 // Traverse each structure endpoint as an 'FspopItem'
 // note: only endpoints are traversed and not each stage of the structure
-func (fsYamlStruct *YamlStructure) TraverseStructure(callback func(FspopItem)) {
+func (fsYamlStruct *YamlStructure) TraverseStructureEndpoints(callback func(FspopItem)) {
 	// Crawl each endpoint recursivly
 	crawlYamlStructureItems(fsYamlStruct.Structure, *CreateFspopPath([]string{}), callback)
 }

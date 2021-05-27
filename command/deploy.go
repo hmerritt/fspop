@@ -81,21 +81,7 @@ func (c *DeployCommand) Run(args []string) int {
 					if len(fsDynamicItem.DataKey) > 0 {
 						// Check if item 'DataKey' actually exists
 						if fsDataItem, ok := fsStructure.Data[fsDynamicItem.DataKey]; ok {
-							// Is URL
-							if parse.UseUrl(fsDataItem.Data) {
-								// Fetch URL data
-								dataFromURL, _ := parse.FetchUrl(fsDataItem.Data)
-								fileData = dataFromURL
-
-							} else if parse.FileExists(fsDataItem.Data) {
-								// Load file data and place into new file
-								dataFromFile, _ := parse.FetchFile(fsDataItem.Data)
-								fileData = dataFromFile
-
-							} else {
-								// Treat data as plain text
-								fileData = []byte(fsDataItem.Data)
-							}
+							fileData, _ = resolveDataPayload(fsDataItem.Data)
 						}
 					}
 				}
@@ -170,21 +156,7 @@ func (c *DeployCommand) Run(args []string) int {
 		if len(item.DataKey) > 0 {
 			// Check if item 'DataKey' actually exists
 			if fsDataItem, ok := fsStructure.Data[item.DataKey]; ok {
-				// Is URL
-				if parse.UseUrl(fsDataItem.Data) {
-					// Fetch URL data
-					dataFromURL, _ := parse.FetchUrl(fsDataItem.Data)
-					newFile.Write(dataFromURL)
-
-				} else if parse.FileExists(fsDataItem.Data) {
-					// Load file data and place into new file
-					dataFromFile, _ := parse.FetchFile(fsDataItem.Data)
-					newFile.Write(dataFromFile)
-
-				} else {
-					// Treat data as plain text
-					newFile.WriteString(fsDataItem.Data)
-				}
+				fetchAndWriteToFile(newFile, fsDataItem.Data)
 			}
 		}
 
@@ -198,4 +170,49 @@ func (c *DeployCommand) Run(args []string) int {
 	fmt.Printf("%s in %s", message.Green("Structure deployed"), time.Since(timeStart))
 
 	return 0
+}
+
+// Fetch data key payload AND write data to an open file
+func fetchAndWriteToFile(file *os.File, dataString string) error {
+	// Get data
+	data, errData := resolveDataPayload(dataString)
+
+	if errData != nil {
+		return errData
+	}
+
+	// Write to file
+	_, errWrite := file.Write(data)
+
+	if errWrite != nil {
+		return errWrite
+	}
+
+	return nil
+}
+
+// Fetch data key payload from difference sources
+// Local file, URL, as-is (text)
+func resolveDataPayload(dataString string) ([]byte, error) {
+	// Is URL
+	if parse.UseUrl(dataString) {
+		// Fetch URL data
+		dataFromURL, err := parse.FetchUrl(dataString)
+		if err == nil {
+			return dataFromURL, nil
+		} else {
+			return nil, err
+		}
+	} else if parse.FileExists(dataString) {
+		// Load file data and place into new file
+		dataFromFile, err := parse.FetchFile(dataString)
+		if err == nil {
+			return dataFromFile, nil
+		} else {
+			return nil, err
+		}
+	}
+
+	// Use data as-is (text)
+	return []byte(dataString), nil
 }

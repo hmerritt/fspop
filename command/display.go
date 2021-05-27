@@ -45,10 +45,8 @@ func (c *DisplayCommand) Run(args []string) int {
 		path = parse.ElasticExtension(args[0])
 	}
 
-	// Fetch structure file
-	fileData := parse.FetchYaml(path)
-
-	fsStructure := parse.ParseAndRefineYaml(fileData)
+	// Fetch structure
+	fsStructure := parse.FetchAndParseStructure(path)
 
 	// Single-depth slice to store all nodes + their tree instance
 	treeNodes := make(map[string]*gotree.Tree, len(fsStructure.Items))

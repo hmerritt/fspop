@@ -46,12 +46,10 @@ func (c *DeployCommand) Run(args []string) int {
 		path = parse.ElasticExtension(args[0])
 	}
 
-	// Fetch structure file
-	fileData := parse.FetchYaml(path)
+	// Fetch structure
+	fsStructure := parse.FetchAndParseStructure(path)
 
 	timeStart := time.Now()
-
-	fsStructure := parse.ParseAndRefineYaml(fileData)
 
 	// Print structure stats
 	message.Info("Structure File")

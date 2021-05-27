@@ -9,6 +9,16 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+func FetchAndParseStructure(path string) *structure.FspopStructure {
+	// Fetch structure file
+	fileData := FetchYaml(path)
+
+	// Parse YAML and refine into a useable structure
+	fsStructure := ParseAndRefineYaml(fileData)
+
+	return fsStructure
+}
+
 func ParseAndRefineYaml(data []byte) *structure.FspopStructure {
 	// Parse YAML
 	yamlStructure, parseErr := ParseYaml(data)

@@ -131,6 +131,17 @@ func (fsStruct *FspopStructure) Count() int {
 	return len(fsStruct.Items)
 }
 
+// Resolves a dataKey into full FspopData item
+// Returns 'FspopData' and if the data item exists (as a bool)
+func (fsStruct *FspopStructure) GetDataItem(dataKey string) (*FspopData, bool) {
+	if len(dataKey) == 0 {
+		return nil, false
+	}
+
+	fsDataItem, ok := fsStruct.Data[dataKey]
+	return fsDataItem, ok
+}
+
 //
 // Generic structure methods
 //

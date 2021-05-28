@@ -74,7 +74,7 @@ func (c *DeployCommand) Run(args []string) int {
 				// Load file data before creating items
 				if !fsDynamicItem.IsTypeDirectory() {
 					// Resolve 'DataKey' into a data item
-					if fsDataItem, ok := getDataItem(fsStructure, fsDynamicItem.DataKey); ok {
+					if fsDataItem, ok := fsStructure.GetDataItem(fsDynamicItem.DataKey); ok {
 						fileData, _ = resolveDataPayload(fsDataItem.Data)
 					}
 				}
@@ -132,7 +132,7 @@ func (c *DeployCommand) Run(args []string) int {
 			newFile, _ := parse.CreateFile(fmt.Sprintf("%s/%s", fsStructure.Name, item.Path.ToString()))
 
 			// Resolve 'DataKey' into a data item
-			if fsDataItem, ok := getDataItem(fsStructure, item.DataKey); ok {
+			if fsDataItem, ok := fsStructure.GetDataItem(item.DataKey); ok {
 				fetchAndWriteToFile(newFile, fsDataItem.Data)
 			}
 
@@ -201,13 +201,4 @@ func resolveDataPayload(dataString string) ([]byte, error) {
 
 	// Use data as-is (text)
 	return []byte(dataString), nil
-}
-
-func getDataItem(fsStructure *structure.FspopStructure, dataKey string) (*structure.FspopData, bool) {
-	if len(dataKey) == 0 {
-		return nil, false
-	}
-
-	fsDataItem, ok := fsStructure.Data[dataKey]
-	return fsDataItem, ok
 }

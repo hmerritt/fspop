@@ -117,10 +117,19 @@ dynamic:
     - padded: false
     - start: 5
 
+my-custom-sub-structure: &myStructureName
+  - 1. this structure can be reused
+  - 2. data can be imported: example
+  - $dyn
+
 structure:
   - file.empty
   - file.data: example
   - image.png: data_actual
+  - sub-structure/:
+    - *myStructureName
+    - reuse/:
+      - *myStructureName
   - dynamic-items/:
     - dynamic-folders/:
       - $dyn_folders

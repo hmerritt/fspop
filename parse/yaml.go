@@ -9,7 +9,7 @@ import (
 var YamlExtensions = [2]string{".yaml", ".yml"}
 
 var DefaultYamlFileName = "structure"
-var DefaultYamlFile = fmt.Sprintf("%s.%s", DefaultYamlFileName, YamlExtensions[1])
+var DefaultYamlFile = fmt.Sprintf("%s%s", DefaultYamlFileName, YamlExtensions[1])
 
 func FileExtension(filename string) string {
 	return filepath.Ext(filename)

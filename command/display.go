@@ -45,37 +45,8 @@ func (c *DisplayCommand) Run(args []string) int {
 		path = parse.ElasticExtension(args[0])
 	}
 
-	var fileData []byte
-	var fileError error
-
-	// Decide if URL or file
-	if parse.UseUrl(path) {
-		message.Spinner.Start("", " Fetching URL data...")
-
-		fileData, fileError = parse.FetchUrl(path)
-
-		message.Spinner.Stop()
-
-		if fileError != nil {
-			message.Error("Unable to fetch URL data.")
-			message.Error(fmt.Sprint(fileError))
-			fmt.Println()
-			message.Warn("Make sure the link is accessible and try again.")
-			return 2
-		}
-	} else {
-		fileData, fileError = parse.FetchFile(path)
-
-		if fileError != nil {
-			message.Error("Unable to open file.")
-			message.Error(fmt.Sprint(fileError))
-			fmt.Println()
-			message.Warn("Check the file is exists and try again.")
-			return 2
-		}
-	}
-
-	fsStructure := parse.ParseAndRefineYaml(fileData)
+	// Fetch structure
+	fsStructure := parse.FetchAndParseStructure(path)
 
 	// Single-depth slice to store all nodes + their tree instance
 	treeNodes := make(map[string]*gotree.Tree, len(fsStructure.Items))
@@ -87,7 +58,7 @@ func (c *DisplayCommand) Run(args []string) int {
 
 	// Populate treeNodes structure
 	// Crawl each path in structure
-	fsStructure.Crawl(func(key string, item structure.FspopItem) {
+	fsStructure.Crawl(func(item structure.FspopItem) {
 		treeItem := treeNodes["/"]
 
 		// Breakdown invividual path nodes

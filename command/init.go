@@ -37,19 +37,28 @@ func (c *InitCommand) Run(args []string) int {
 		path = parse.AddYamlExtension(args[0])
 	}
 
-	// TODO: Add actual error reporting
+	// Check if file already exists
+	if parse.FileExists(path) {
+		// Exit. Dont't overwrite existing files
+		message.Error("Structure file '" + path + "' already exists.")
+		fmt.Println()
+		message.Warn("Rename or remove the existing file and try again.")
+		return 1
+	}
 
 	// Create structure file
 	file, err := os.Create(path)
 	if err != nil {
-		fmt.Println(err)
+		message.Error("Unable to create new structure file '" + path + "'.")
+		message.Error(fmt.Sprint(err))
 		return 1
 	}
 
 	// Write content into file
 	_, err = file.WriteString(yamlFileContent())
 	if err != nil {
-		fmt.Println(err)
+		message.Error("Created structure file '" + path + "', but failed to write data into it.")
+		message.Error(fmt.Sprint(err))
 		file.Close()
 		return 1
 	}
@@ -57,7 +66,7 @@ func (c *InitCommand) Run(args []string) int {
 	// Close file
 	err = file.Close()
 	if err != nil {
-		fmt.Println(err)
+		message.Error(fmt.Sprint(err))
 		return 1
 	}
 
@@ -76,28 +85,54 @@ func yamlFileContent() string {
 ##
 ## Usage info:
 ## $ fspop -h
+##
+## my-folder/          - folders need a '/' at the end
+## my-file             - items are assumed to be files (unless there is a '/')
+## data-file: data_var - files can have custum data by assigning a data variable 'file: your_data_variable'
+## $dynamic_item       - dynamic items have a dollar prefix '$' + 'your_dynamic_variable'
 ###########################
 version: 4
 
-name: fspop-example
+name: fspop-structure
 
 data:
   - example: text can be imported like this
   - data_file: /path/to/file
+  - data_url: https://example.com/data/from/url
+  - data_actual: https://via.placeholder.com/400/771796
 
 dynamic:
   - dyn:
-    - amount: 100
+    - amount: 10
     - data: example
     - type: file
-    - name: fspop_example_$num
+    - name: fspop_$num.dynamic
     - padded: true
+    - start: 95
+
+  - dyn_folders:
+    - amount: 10
+    - type: folder
+    - name: fspop_$num_dynamic
+    - padded: false
+    - start: 5
+
+my-custom-sub-structure: &myStructureName
+  - 1. this structure can be reused
+  - 2. data can be imported: example
+  - $dyn
 
 structure:
   - file.empty
-  - file_data: example
-  - $dyn
-  - /folder:
-    - /sub-folder
+  - file.data: example
+  - image.png: data_actual
+  - sub-structure/:
+    - *myStructureName
+    - reuse/:
+      - *myStructureName
+  - dynamic-items/:
+    - dynamic-folders/:
+      - $dyn_folders
+    - $dyn
 `
 }

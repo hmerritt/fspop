@@ -52,11 +52,7 @@ func (c *DeployCommand) Run(args []string) int {
 	timeStart := time.Now()
 
 	// Print structure stats
-	message.Info("Structure File")
-	message.Text("├── Data Variables       " + fmt.Sprint(len(fsStructure.Data)))
-	message.Text("├── Dynamic Variables    " + fmt.Sprint(len(fsStructure.Dynamic)))
-	message.Text("└── Structure Endpoints  " + fmt.Sprint(len(fsStructure.Items)))
-	message.Text("")
+	printStructureStats(fsStructure)
 
 	// Initiate progress bar
 	bar := message.GetProgressBar(len(fsStructure.Items), " Deploying")
@@ -76,13 +72,10 @@ func (c *DeployCommand) Run(args []string) int {
 
 				// If dynamic item has type 'file'
 				// Load file data before creating items
-				if !strings.HasPrefix(fsDynamicItem.Type, "dir") || !strings.HasPrefix(fsDynamicItem.Type, "fol") {
-					// Check if file has a data key
-					if len(fsDynamicItem.DataKey) > 0 {
-						// Check if item 'DataKey' actually exists
-						if fsDataItem, ok := fsStructure.Data[fsDynamicItem.DataKey]; ok {
-							fileData, _ = resolveDataPayload(fsDataItem.Data)
-						}
+				if !fsDynamicItem.IsTypeDirectory() {
+					// Resolve 'DataKey' into a data item
+					if fsDataItem, ok := getDataItem(fsStructure, fsDynamicItem.DataKey); ok {
+						fileData, _ = resolveDataPayload(fsDataItem.Data)
 					}
 				}
 
@@ -90,21 +83,10 @@ func (c *DeployCommand) Run(args []string) int {
 				// n = fsDynamicItem.Count = user defined
 				fsDynamicItemMaxCount := fsDynamicItem.Start + fsDynamicItem.Count
 				for i := fsDynamicItem.Start; i < fsDynamicItemMaxCount; i++ {
-					// Build file/directory name
-					itemCountPadWidth := 1
-					if fsDynamicItem.Padded {
-						itemCountPadWidth = len(fmt.Sprint(fsDynamicItemMaxCount))
-					}
-					itemCountPadded := fmt.Sprintf("%0*d", itemCountPadWidth, i)
-					if !strings.Contains(fsDynamicItem.Name, "$num") {
-						fsDynamicItem.Name = fmt.Sprintf("%s_$num", fsDynamicItem.Name)
-					}
-					itemName := strings.ReplaceAll(fsDynamicItem.Name, "$num", itemCountPadded)
-					itemParentPath := fmt.Sprintf("%s/%s/", fsStructure.Name, item.Path.ParentString())
-					itemPath := fmt.Sprintf("%s/%s", itemParentPath, itemName)
+					itemPath, itemParentPath := fsDynamicItem.BuildItemPath(fsStructure.Name, &item.Path, i)
 
 					// Is directory
-					if strings.HasPrefix(fsDynamicItem.Type, "dir") || strings.HasPrefix(fsDynamicItem.Type, "fol") {
+					if fsDynamicItem.IsTypeDirectory() {
 						// Create full directory
 						os.MkdirAll(itemPath, os.ModePerm)
 
@@ -140,27 +122,22 @@ func (c *DeployCommand) Run(args []string) int {
 			// TODO: check and print any errors
 			os.MkdirAll(fmt.Sprintf("%s/%s", fsStructure.Name, key), os.ModePerm)
 
-			bar.Add(1)
-			continue
-		}
+		} else {
+			// File
+			// Recursively make all parent directories
+			os.MkdirAll(fmt.Sprintf("%s/%s", fsStructure.Name, item.Path.ParentString()), os.ModePerm)
 
-		// File
-		// Recursively make all parent directories
-		os.MkdirAll(fmt.Sprintf("%s/%s", fsStructure.Name, item.Path.ParentString()), os.ModePerm)
+			// Create empty file
+			// TODO: check and print any errors
+			newFile, _ := parse.CreateFile(fmt.Sprintf("%s/%s", fsStructure.Name, item.Path.ToString()))
 
-		// Create empty file
-		// TODO: check and print any errors
-		newFile, _ := parse.CreateFile(fmt.Sprintf("%s/%s", fsStructure.Name, item.Path.ToString()))
-
-		// Check if file has a data key
-		if len(item.DataKey) > 0 {
-			// Check if item 'DataKey' actually exists
-			if fsDataItem, ok := fsStructure.Data[item.DataKey]; ok {
+			// Resolve 'DataKey' into a data item
+			if fsDataItem, ok := getDataItem(fsStructure, item.DataKey); ok {
 				fetchAndWriteToFile(newFile, fsDataItem.Data)
 			}
-		}
 
-		newFile.Close()
+			newFile.Close()
+		}
 
 		bar.Add(1)
 	}
@@ -170,6 +147,15 @@ func (c *DeployCommand) Run(args []string) int {
 	fmt.Printf("%s in %s", message.Green("Structure deployed"), time.Since(timeStart))
 
 	return 0
+}
+
+// Print basic structure stats
+func printStructureStats(fsStructure *structure.FspopStructure) {
+	message.Info("Structure File")
+	message.Text("├── Data Variables       " + fmt.Sprint(len(fsStructure.Data)))
+	message.Text("├── Dynamic Variables    " + fmt.Sprint(len(fsStructure.Dynamic)))
+	message.Text("└── Structure Endpoints  " + fmt.Sprint(len(fsStructure.Items)))
+	message.Text("")
 }
 
 // Fetch data key payload AND write data to an open file
@@ -215,4 +201,13 @@ func resolveDataPayload(dataString string) ([]byte, error) {
 
 	// Use data as-is (text)
 	return []byte(dataString), nil
+}
+
+func getDataItem(fsStructure *structure.FspopStructure, dataKey string) (*structure.FspopData, bool) {
+	if len(dataKey) == 0 {
+		return nil, false
+	}
+
+	fsDataItem, ok := fsStructure.Data[dataKey]
+	return fsDataItem, ok
 }

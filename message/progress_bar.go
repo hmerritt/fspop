@@ -8,15 +8,15 @@ import (
 func GetProgressBar(length int, description string) *progressbar.ProgressBar {
 	return progressbar.NewOptions(length,
 		progressbar.OptionEnableColorCodes(true),
-		progressbar.OptionSetWidth(35),
+		progressbar.OptionSetWidth(40),
 		progressbar.OptionShowCount(),
 		progressbar.OptionSetPredictTime(false),
 		progressbar.OptionSetDescription(description),
 		progressbar.OptionSetTheme(progressbar.Theme{
-			Saucer:        "=",
-			SaucerHead:    ">",
+			Saucer:        "█", // "=", "█"
+			SaucerHead:    "",
 			SaucerPadding: " ",
-			BarStart:      "[",
-			BarEnd:        "]",
+			BarStart:      "|",
+			BarEnd:        "|",
 		}))
 }

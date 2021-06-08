@@ -144,7 +144,7 @@ func (c *DeployCommand) Run(args []string) int {
 
 	fmt.Println()
 	fmt.Println()
-	fmt.Printf("%s in %s", message.Green("Structure deployed"), time.Since(timeStart))
+	fmt.Printf("%s in %s\n", message.Green("Structure deployed"), time.Since(timeStart))
 
 	return 0
 }

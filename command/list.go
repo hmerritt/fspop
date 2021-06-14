@@ -49,7 +49,7 @@ func (c *ListCommand) Run(args []string) int {
 		c.UI.Error("Unable to read directory files")
 		c.UI.Error(fmt.Sprint(err))
 		c.UI.Warn("\nThis is most likely due to a lack of permissions,")
-		c.UI.Warn("Check you have (at least) read access to this directory.")
+		c.UI.Warn("check you have (at least) read access to this directory.")
 		return 1
 	}
 

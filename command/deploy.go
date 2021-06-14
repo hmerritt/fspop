@@ -136,7 +136,7 @@ func deployDynamicItem(fsStructure *structure.FspopStructure, item *structure.Fs
 	// n = fsDynamicItem.Count = user defined
 	fsDynamicItemMaxCount := fsDynamicItem.Start + fsDynamicItem.Count
 	for i := fsDynamicItem.Start; i < fsDynamicItemMaxCount; i++ {
-		itemPath, itemParentPath := fsDynamicItem.BuildItemPath(fsStructure.Name, &item.Path, i)
+		itemPath, itemParentPath := fsDynamicItem.BuildItemPath(fsStructure.GetEntrypoint(), &item.Path, i)
 
 		// Is directory
 		if fsDynamicItem.IsTypeDirectory() {
@@ -181,7 +181,7 @@ func deployItem(fsStructure *structure.FspopStructure, item *structure.FspopItem
 	// Check if endpoint is a directory
 	if structure.IsDirectory(key) {
 		// Recursively make all directories
-		err := os.MkdirAll(fmt.Sprintf("%s/%s", fsStructure.Name, key), os.ModePerm)
+		err := os.MkdirAll(fmt.Sprintf("%s/%s", fsStructure.GetEntrypoint(), key), os.ModePerm)
 		if err != nil {
 			printError(bar, errorCount, errors.New("unable to make directory: '"+key+"'"))
 		}
@@ -189,14 +189,14 @@ func deployItem(fsStructure *structure.FspopStructure, item *structure.FspopItem
 	} else {
 		// File
 		// Recursively make all parent directories
-		err := os.MkdirAll(fmt.Sprintf("%s/%s", fsStructure.Name, item.Path.ParentString()), os.ModePerm)
+		err := os.MkdirAll(fmt.Sprintf("%s/%s", fsStructure.GetEntrypoint(), item.Path.ParentString()), os.ModePerm)
 		if err != nil {
 			printError(bar, errorCount, errors.New("unable to make directory: '"+item.Path.ParentString()+"'"))
 			return
 		}
 
 		// Create empty file
-		newFile, err := parse.CreateFile(fmt.Sprintf("%s/%s", fsStructure.Name, item.Path.ToString()))
+		newFile, err := parse.CreateFile(fmt.Sprintf("%s/%s", fsStructure.GetEntrypoint(), item.Path.ToString()))
 		if err != nil {
 			printError(bar, errorCount, errors.New("unable to create file: '"+item.Path.ToString()+"'"))
 			newFile.Close()

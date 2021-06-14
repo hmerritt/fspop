@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"gitlab.com/merrittcorp/fspop/message"
 	"gitlab.com/merrittcorp/fspop/structure"
+	"gitlab.com/merrittcorp/fspop/ui"
 	"gopkg.in/yaml.v2"
 )
 
@@ -23,11 +23,12 @@ func ParseAndRefineYaml(data []byte) *structure.FspopStructure {
 	// Parse YAML
 	yamlStructure, parseErr := ParseYaml(data)
 
+	UI := ui.GetUi()
+
 	if parseErr != nil {
-		message.Error("Unable to parse YAML file.")
-		message.Error(fmt.Sprint(parseErr))
-		fmt.Println()
-		message.Warn("Check the file is valid YAML and try again.")
+		UI.Error("Unable to parse YAML file.")
+		UI.Error(fmt.Sprint(parseErr))
+		UI.Warn("\nCheck the file is valid YAML and try again.")
 		os.Exit(2)
 	}
 
@@ -35,10 +36,9 @@ func ParseAndRefineYaml(data []byte) *structure.FspopStructure {
 	refined, refineErr := RefineYaml(yamlStructure)
 
 	if refineErr != nil {
-		message.Error("Structure file is invalid or has missing parts.")
-		message.Error(fmt.Sprint(refineErr))
-		fmt.Println()
-		message.Warn("Check the structure file is valid and try again.")
+		UI.Error("Structure file is invalid or has missing parts.")
+		UI.Error(fmt.Sprint(refineErr))
+		UI.Warn("\nCheck the structure file is valid and try again.")
 		os.Exit(2)
 	}
 

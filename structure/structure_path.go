@@ -1,11 +1,11 @@
 package structure
 
 import (
-	"errors"
 	"fmt"
+	"os"
 	"strings"
 
-	"gitlab.com/merrittcorp/fspop/message"
+	"gitlab.com/merrittcorp/fspop/ui"
 )
 
 type FspopPath struct {
@@ -55,10 +55,12 @@ func (fsPath *FspopPath) Last() string {
 func (fsPath *FspopPath) Append(path string) {
 	// Can't append if a file has been reached
 	if !fsPath.IsEmpty() && !IsDirectory(fsPath.Last()) {
-		message.Error(path)
-		message.Error(fmt.Sprint(fsPath.Path))
-		panic(errors.New("tried to append after a file in fspopPath"))
-		//return
+		// TODO: Prevent this from needing os.Exit
+		UI := ui.GetUi()
+		UI.Error(path)
+		UI.Error(fmt.Sprint(fsPath.Path))
+		UI.Error("\nfspop internal fatal error. tried to append after a file in fspopPath")
+		os.Exit(1)
 	}
 
 	if IsDirectory(path) {

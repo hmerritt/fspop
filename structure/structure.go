@@ -6,11 +6,12 @@ import (
 )
 
 type YamlStructure struct {
-	Version   string
-	Name      string
-	Data      interface{}
-	Dynamic   interface{}
-	Structure interface{}
+	Version    string
+	Name       string
+	Entrypoint string
+	Data       interface{}
+	Dynamic    interface{}
+	Structure  interface{}
 }
 
 type FspopData struct {
@@ -35,11 +36,12 @@ type FspopItem struct {
 }
 
 type FspopStructure struct {
-	Version string
-	Name    string
-	Data    map[string]*FspopData
-	Dynamic map[string]*FspopDynamic
-	Items   map[string]*FspopItem
+	Version    string
+	Name       string
+	Entrypoint string
+	Data       map[string]*FspopData
+	Dynamic    map[string]*FspopDynamic
+	Items      map[string]*FspopItem
 }
 
 //
@@ -107,6 +109,16 @@ func GetDefaultDynamicItem() *FspopDynamic {
 //
 // FspopStructure methods
 //
+
+// Get entrypoint path
+//
+// Returns 'Entrypoint' key, or 'Name' as a fallback
+func (fsStruct *FspopStructure) GetEntrypoint() string {
+	if fsStruct.Entrypoint == "" {
+		return strings.TrimSuffix(fsStruct.Name, "/")
+	}
+	return strings.TrimSuffix(fsStruct.Entrypoint, "/")
+}
 
 // Checks if a path exists in Items
 func (fsStruct *FspopStructure) Exists(pathToFind *FspopPath) bool {

@@ -19,6 +19,11 @@ func (fsYamlStruct *YamlStructure) IsValid() (bool, error) {
 		return false, errors.New("'structure:' key not found in structure file")
 	}
 
+	// Either 'name' or 'entrypoint'
+	if fsYamlStruct.Name == "" && fsYamlStruct.Entrypoint == "" {
+		return false, errors.New("'entrypoint:' key not found in structure file")
+	}
+
 	// Expected types
 
 	// Data key, check if it exists

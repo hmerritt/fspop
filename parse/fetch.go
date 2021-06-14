@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/imroc/req"
-	"gitlab.com/merrittcorp/fspop/message"
+	"gitlab.com/merrittcorp/fspop/ui"
 )
 
 func IsUrl(path string) bool {
@@ -48,29 +48,29 @@ func FetchYaml(path string) []byte {
 	var data []byte
 	var err error
 
+	UI := ui.GetUi()
+
 	// Decide if URL or file
 	if UseUrl(path) {
-		message.Spinner.Start("", " Fetching URL data...")
+		ui.Spinner.Start("", " Fetching URL data...")
 
 		data, err = FetchUrl(path)
 
-		message.Spinner.Stop()
+		ui.Spinner.Stop()
 
 		if err != nil {
-			message.Error("Unable to fetch URL data.")
-			message.Error(fmt.Sprint(err))
-			fmt.Println()
-			message.Warn("Make sure the link is accessible and try again.")
+			UI.Error("Unable to fetch URL data.")
+			UI.Error(fmt.Sprint(err))
+			UI.Warn("\nMake sure the link is accessible and try again.")
 			os.Exit(2)
 		}
 	} else {
 		data, err = FetchFile(path)
 
 		if err != nil {
-			message.Error("Unable to open file.")
-			message.Error(fmt.Sprint(err))
-			fmt.Println()
-			message.Warn("Check the file is exists and try again.")
+			UI.Error("Unable to open file.")
+			UI.Error(fmt.Sprint(err))
+			UI.Warn("\nCheck the file is exists and try again.")
 			os.Exit(2)
 		}
 	}

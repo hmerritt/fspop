@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fatih/color"
 	"github.com/mitchellh/cli"
 	"gitlab.com/merrittcorp/fspop/version"
 )
@@ -16,13 +17,15 @@ func Run() {
 
 	getBaseCommand := func() *BaseCommand {
 		return &BaseCommand{
-			UI: &cli.ColoredUi{
-				ErrorColor: cli.UiColorRed,
-				WarnColor:  cli.UiColorYellow,
-				Ui: &cli.BasicUi{
-					Reader:      bufio.NewReader(os.Stdin),
-					Writer:      os.Stdout,
-					ErrorWriter: os.Stderr,
+			UI: &cliUi{
+				&cli.ColoredUi{
+					ErrorColor: cli.UiColorRed,
+					WarnColor:  cli.UiColorYellow,
+					Ui: &cli.BasicUi{
+						Reader:      bufio.NewReader(os.Stdin),
+						Writer:      os.Stdout,
+						ErrorWriter: os.Stderr,
+					},
 				},
 			},
 		}
@@ -65,5 +68,30 @@ func Run() {
 //
 // Used to standardize UI output
 type BaseCommand struct {
-	UI cli.Ui
+	UI *cliUi
+}
+
+// Extend cli.Ui interface by adding a 'Success' method,
+// this method is used for green output.
+type cliUi struct {
+	*cli.ColoredUi
+}
+
+func (u *cliUi) Success(message string) {
+	u.Ui.Output(u.colorize(message, cli.UiColorGreen))
+}
+
+func (u *cliUi) colorize(message string, uc cli.UiColor) string {
+	const noColor = -1
+
+	if uc.Code == noColor {
+		return message
+	}
+
+	attr := []color.Attribute{color.Attribute(uc.Code)}
+	if uc.Bold {
+		attr = append(attr, color.Bold)
+	}
+
+	return color.New(attr...).SprintFunc()(message)
 }

@@ -116,7 +116,7 @@ func (c *DeployCommand) Run(args []string) int {
 				}
 			} else {
 				// Dynamic key does not exist
-				printDeployError(bar, &errorCount, errors.New("dynamic key does not exist: '"+item.DynamicKey+"'"))
+				printError(bar, &errorCount, errors.New("dynamic key does not exist: '"+item.DynamicKey+"'"))
 			}
 
 			bar.Add(1)
@@ -150,14 +150,23 @@ func (c *DeployCommand) Run(args []string) int {
 		bar.Add(1)
 	}
 
-	c.UI.Output(fmt.Sprintf("\n\n%s in %s", c.UI.Colorize("Structure deployed", c.UI.SuccessColor), time.Since(timeStart)))
+	c.UI.Output("\n")
+
+	if errorCount > 0 {
+		// c.UI.Warn("Use '--strict' flag to stop immediately if any errors occur\n")
+
+		c.UI.Output(fmt.Sprintf("%s in %s", c.UI.Colorize("Structure deployed (with "+fmt.Sprint(errorCount)+" errors)", c.UI.WarnColor), time.Since(timeStart)))
+		return 1
+	}
+
+	c.UI.Output(fmt.Sprintf("%s in %s", c.UI.Colorize("Structure deployed", c.UI.SuccessColor), time.Since(timeStart)))
 
 	return 0
 }
 
 // Prints an error while deploying
 // Handles printing aorund the progress-bar
-func printDeployError(bar *progressbar.ProgressBar, errorCount *int, err error) {
+func printError(bar *progressbar.ProgressBar, errorCount *int, err error) {
 	// Remove the progress bar from the current line
 	bar.Clear()
 

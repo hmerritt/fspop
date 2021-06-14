@@ -2,7 +2,6 @@ package command
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"sort"
 	"strings"
@@ -10,7 +9,9 @@ import (
 	"gitlab.com/merrittcorp/fspop/parse"
 )
 
-type ListCommand struct{}
+type ListCommand struct {
+	*BaseCommand
+}
 
 func (c *ListCommand) Synopsis() string {
 	return "List structure files in the current directory"
@@ -22,7 +23,7 @@ Usage: fspop list [options] PATH
   
   Lists all YAML files in the current directory.
   
-  YAML are identified by their file extension(s):
+  YAML files are identified by the file extension(s):
   - .yml
   - .yaml
 
@@ -45,8 +46,11 @@ func (c *ListCommand) Run(args []string) int {
 
 	files, err := os.ReadDir(path)
 	if err != nil {
-		// TODO: Print actual error message here
-		log.Fatal(err)
+		c.UI.Error("Unable to read directory files")
+		c.UI.Error(fmt.Sprint(err))
+		c.UI.Warn("\nThis is most likely due to a lack of permissions,")
+		c.UI.Warn("Check you have (at least) read access to this directory.")
+		return 1
 	}
 
 	yamlFiles := make([]string, 0)
@@ -63,14 +67,16 @@ func (c *ListCommand) Run(args []string) int {
 	sort.Strings(yamlFiles)
 
 	if len(yamlFiles) == 0 {
+		// Get friendly path name.
+		// Converts './' to 'current'
 		pathFriendly := "'" + path + "'"
 		if path == "./" {
 			pathFriendly = "current"
 		}
-		fmt.Println("No structure files found in the " + pathFriendly + " directory.")
-		fmt.Println()
-		fmt.Println("Create a structure file using:")
-		fmt.Println("$ fspop init <NAME>")
+
+		c.UI.Output("No structure files found in the " + pathFriendly + " directory.\n")
+		c.UI.Output("Create a structure file using:")
+		c.UI.Output("$ fspop init <NAME>")
 		return 2
 	}
 
@@ -80,8 +86,8 @@ func (c *ListCommand) Run(args []string) int {
 		fmt.Printf("-- %s\n", yf)
 	}
 
-	fmt.Println("\nDeploy a structure file using:")
-	fmt.Println("$ fspop deploy <NAME>")
+	c.UI.Output("\nDeploy a structure file using:")
+	c.UI.Output("$ fspop deploy <NAME>")
 
 	return 0
 }

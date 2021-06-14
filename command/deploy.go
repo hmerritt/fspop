@@ -53,7 +53,11 @@ func (c *DeployCommand) Run(args []string) int {
 	fsStructure := parse.FetchAndParseStructure(path)
 
 	// Print structure stats
-	printStructureStats(fsStructure)
+	c.UI.Info("Structure File")
+	c.UI.Output("├── Data Variables       " + fmt.Sprint(len(fsStructure.Data)))
+	c.UI.Output("├── Dynamic Variables    " + fmt.Sprint(len(fsStructure.Dynamic)))
+	c.UI.Output("└── Structure Endpoints  " + fmt.Sprint(len(fsStructure.Items)))
+	c.UI.Output("")
 
 	// Record the total duration of this command
 	timeStart := time.Now()
@@ -83,108 +87,13 @@ func (c *DeployCommand) Run(args []string) int {
 				continue
 			}
 
-			// Create empty fileData
-			fileData := make([]byte, 0)
-
-			// If dynamic item has type 'file'
-			// Load file data before creating items
-			if !fsDynamicItem.IsTypeDirectory() {
-				// Resolve 'DataKey' into a data item
-				if fsDataItem, ok := fsStructure.GetDataItem(fsDynamicItem.DataKey); ok {
-					var err error
-					fileData, err = resolveDataPayload(fsDataItem.Data)
-
-					if err != nil {
-						printError(bar, &errorCount, errors.New("unable to get data payload for "+fsDynamicItem.Key+": '"+fsDataItem.Data+"'"))
-						fileData = []byte(fsDataItem.Data) // Fallback to whatever the user set fsDataItem.Data to
-					}
-				}
-			}
-
-			// Loop n times
-			// n = fsDynamicItem.Count = user defined
-			fsDynamicItemMaxCount := fsDynamicItem.Start + fsDynamicItem.Count
-			for i := fsDynamicItem.Start; i < fsDynamicItemMaxCount; i++ {
-				itemPath, itemParentPath := fsDynamicItem.BuildItemPath(fsStructure.Name, &item.Path, i)
-
-				// Is directory
-				if fsDynamicItem.IsTypeDirectory() {
-					// Create full directory
-					err := os.MkdirAll(itemPath, os.ModePerm)
-					if err != nil {
-						printError(bar, &errorCount, errors.New("unable to make directory for "+fsDynamicItem.Key+": '"+itemPath+"'"))
-					}
-
-					// Is file
-				} else {
-					// Create parent directory
-					err := os.MkdirAll(itemParentPath, os.ModePerm)
-					if err != nil {
-						printError(bar, &errorCount, errors.New("unable to make directory for "+fsDynamicItem.Key+": '"+itemParentPath+"'"))
-						continue
-					}
-
-					// Create file
-					newFile, err := parse.CreateFile(itemPath)
-					if err != nil {
-						printError(bar, &errorCount, errors.New("unable to create file for "+fsDynamicItem.Key+": '"+itemPath+"'"))
-						newFile.Close()
-						continue
-					}
-
-					if len(fileData) > 0 {
-						_, err := newFile.Write(fileData)
-						if err != nil {
-							printError(bar, &errorCount, errors.New("unable to add data to file for "+fsDynamicItem.Key+": '"+itemPath+"'"))
-						}
-					}
-
-					newFile.Close()
-				}
-			}
+			deployDynamicItem(fsStructure, item, fsDynamicItem, bar, &errorCount)
 
 			bar.Add(1)
 			continue
 		}
 
-		// Directory
-		// Check if endpoint is a directory
-		if structure.IsDirectory(key) {
-			// Recursively make all directories
-			err := os.MkdirAll(fmt.Sprintf("%s/%s", fsStructure.Name, key), os.ModePerm)
-			if err != nil {
-				printError(bar, &errorCount, errors.New("unable to make directory: '"+key+"'"))
-			}
-
-		} else {
-			// File
-			// Recursively make all parent directories
-			err := os.MkdirAll(fmt.Sprintf("%s/%s", fsStructure.Name, item.Path.ParentString()), os.ModePerm)
-			if err != nil {
-				printError(bar, &errorCount, errors.New("unable to make directory: '"+item.Path.ParentString()+"'"))
-				bar.Add(1)
-				continue
-			}
-
-			// Create empty file
-			newFile, err := parse.CreateFile(fmt.Sprintf("%s/%s", fsStructure.Name, item.Path.ToString()))
-			if err != nil {
-				printError(bar, &errorCount, errors.New("unable to create file: '"+item.Path.ToString()+"'"))
-				newFile.Close()
-				bar.Add(1)
-				continue
-			}
-
-			// Resolve 'DataKey' into a data item
-			if fsDataItem, ok := fsStructure.GetDataItem(item.DataKey); ok {
-				err := fetchAndWriteToFile(newFile, fsDataItem.Data)
-				if err != nil {
-					printError(bar, &errorCount, errors.New("unable to add data to file ("+fmt.Sprint(err)+"): '"+item.Path.ToString()+"'"))
-				}
-			}
-
-			newFile.Close()
-		}
+		deployItem(fsStructure, item, key, bar, &errorCount)
 
 		bar.Add(1)
 	}
@@ -203,15 +112,107 @@ func (c *DeployCommand) Run(args []string) int {
 	return 0
 }
 
-// Print basic structure stats
-func printStructureStats(fsStructure *structure.FspopStructure) {
-	UI := ui.GetUi()
+// Main procedure to deploy a dynamic item
+func deployDynamicItem(fsStructure *structure.FspopStructure, item *structure.FspopItem, fsDynamicItem *structure.FspopDynamic, bar *progressbar.ProgressBar, errorCount *int) {
+	// Create empty fileData
+	fileData := make([]byte, 0)
 
-	UI.Info("Structure File")
-	UI.Output("├── Data Variables       " + fmt.Sprint(len(fsStructure.Data)))
-	UI.Output("├── Dynamic Variables    " + fmt.Sprint(len(fsStructure.Dynamic)))
-	UI.Output("└── Structure Endpoints  " + fmt.Sprint(len(fsStructure.Items)))
-	UI.Output("")
+	// If dynamic item has type 'file'
+	// Load file data before creating items
+	if !fsDynamicItem.IsTypeDirectory() {
+		// Resolve 'DataKey' into a data item
+		if fsDataItem, ok := fsStructure.GetDataItem(fsDynamicItem.DataKey); ok {
+			var err error
+			fileData, err = resolveDataPayload(fsDataItem.Data)
+
+			if err != nil {
+				printError(bar, errorCount, errors.New("unable to get data payload for "+fsDynamicItem.Key+": '"+fsDataItem.Data+"'"))
+				fileData = []byte(fsDataItem.Data) // Fallback to whatever the user set fsDataItem.Data to
+			}
+		}
+	}
+
+	// Loop n times
+	// n = fsDynamicItem.Count = user defined
+	fsDynamicItemMaxCount := fsDynamicItem.Start + fsDynamicItem.Count
+	for i := fsDynamicItem.Start; i < fsDynamicItemMaxCount; i++ {
+		itemPath, itemParentPath := fsDynamicItem.BuildItemPath(fsStructure.Name, &item.Path, i)
+
+		// Is directory
+		if fsDynamicItem.IsTypeDirectory() {
+			// Create full directory
+			err := os.MkdirAll(itemPath, os.ModePerm)
+			if err != nil {
+				printError(bar, errorCount, errors.New("unable to make directory for "+fsDynamicItem.Key+": '"+itemPath+"'"))
+			}
+
+			// Is file
+		} else {
+			// Create parent directory
+			err := os.MkdirAll(itemParentPath, os.ModePerm)
+			if err != nil {
+				printError(bar, errorCount, errors.New("unable to make directory for "+fsDynamicItem.Key+": '"+itemParentPath+"'"))
+				continue
+			}
+
+			// Create file
+			newFile, err := parse.CreateFile(itemPath)
+			if err != nil {
+				printError(bar, errorCount, errors.New("unable to create file for "+fsDynamicItem.Key+": '"+itemPath+"'"))
+				newFile.Close()
+				continue
+			}
+
+			if len(fileData) > 0 {
+				_, err := newFile.Write(fileData)
+				if err != nil {
+					printError(bar, errorCount, errors.New("unable to add data to file for "+fsDynamicItem.Key+": '"+itemPath+"'"))
+				}
+			}
+
+			newFile.Close()
+		}
+	}
+}
+
+// Main procedure to deploy an item (files/folders only, not dynamic items)
+func deployItem(fsStructure *structure.FspopStructure, item *structure.FspopItem, key string, bar *progressbar.ProgressBar, errorCount *int) {
+	// Directory
+	// Check if endpoint is a directory
+	if structure.IsDirectory(key) {
+		// Recursively make all directories
+		err := os.MkdirAll(fmt.Sprintf("%s/%s", fsStructure.Name, key), os.ModePerm)
+		if err != nil {
+			printError(bar, errorCount, errors.New("unable to make directory: '"+key+"'"))
+		}
+
+	} else {
+		// File
+		// Recursively make all parent directories
+		err := os.MkdirAll(fmt.Sprintf("%s/%s", fsStructure.Name, item.Path.ParentString()), os.ModePerm)
+		if err != nil {
+			printError(bar, errorCount, errors.New("unable to make directory: '"+item.Path.ParentString()+"'"))
+			return
+		}
+
+		// Create empty file
+		newFile, err := parse.CreateFile(fmt.Sprintf("%s/%s", fsStructure.Name, item.Path.ToString()))
+		if err != nil {
+			printError(bar, errorCount, errors.New("unable to create file: '"+item.Path.ToString()+"'"))
+			newFile.Close()
+			return
+		}
+
+		// Resolve 'DataKey' into a data item
+		if fsDataItem, ok := fsStructure.GetDataItem(item.DataKey); ok {
+			err := fetchAndWriteToFile(newFile, fsDataItem.Data)
+			if err != nil {
+				printError(bar, errorCount, errors.New("unable to add data to file ("+fmt.Sprint(err)+"): '"+item.Path.ToString()+"'"))
+			}
+		}
+
+		newFile.Close()
+	}
 }
 
 // Prints an error while deploying

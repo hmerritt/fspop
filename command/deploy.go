@@ -8,12 +8,14 @@ import (
 	"time"
 
 	"github.com/schollz/progressbar/v3"
-	"gitlab.com/merrittcorp/fspop/message"
 	"gitlab.com/merrittcorp/fspop/parse"
 	"gitlab.com/merrittcorp/fspop/structure"
+	"gitlab.com/merrittcorp/fspop/ui"
 )
 
-type DeployCommand struct{}
+type DeployCommand struct {
+	*BaseCommand
+}
 
 func (c *DeployCommand) Synopsis() string {
 	return "Deploy (create) a structure"
@@ -41,9 +43,8 @@ func (c *DeployCommand) Run(args []string) int {
 		// Use default structure file
 		// Checks for both '.yaml' and '.yml' extensions
 		path = parse.AddYamlExtension(parse.ElasticExtension(parse.DefaultYamlFileName))
-		message.Warn("No file entered.")
-		message.Warn("Trying default '" + path + "' instead.")
-		message.Text("")
+		c.UI.Warn("No file entered.")
+		c.UI.Warn("Trying default '" + path + "' instead.\n")
 	} else {
 		path = parse.ElasticExtension(args[0])
 	}
@@ -64,13 +65,11 @@ func (c *DeployCommand) Run(args []string) int {
 	errorCount := 0
 
 	// Initiate progress bar
-	bar := message.GetProgressBar(len(fsStructure.Items), " Deploying")
+	bar := ui.GetProgressBar(len(fsStructure.Items), " Deploying")
 
 	// Loop each item endpoint
 	// An endpoint can be both a file or directory
 	for key, item := range fsStructure.Items {
-		// time.Sleep(200 * time.Millisecond)
-
 		// Detect a dynamic item
 		// Dynamic items are special and treated separately
 		if len(item.DynamicKey) > 0 {
@@ -151,9 +150,7 @@ func (c *DeployCommand) Run(args []string) int {
 		bar.Add(1)
 	}
 
-	fmt.Println()
-	fmt.Println()
-	fmt.Printf("%s in %s\n", message.Green("Structure deployed"), time.Since(timeStart))
+	c.UI.Output(fmt.Sprintf("\n\n%s in %s", c.UI.Colorize("Structure deployed", c.UI.SuccessColor), time.Since(timeStart)))
 
 	return 0
 }
@@ -164,27 +161,31 @@ func printDeployError(bar *progressbar.ProgressBar, errorCount *int, err error) 
 	// Remove the progress bar from the current line
 	bar.Clear()
 
+	UI := ui.GetUi()
+
 	// Check if first error
 	// Setup error list for the first error
 	if *errorCount == 0 {
-		message.Error("ERROR:")
+		UI.Error("ERROR:")
 	} else {
-		fmt.Println("\r\033[A\r\033[A")
+		fmt.Print("\r\033[A")
 	}
 
 	// Print error
-	message.Error(fmt.Sprintf("  -- %s\n\n", err))
+	UI.Error(fmt.Sprintf("  -- %s\n", err))
 
 	*errorCount++
 }
 
 // Print basic structure stats
 func printStructureStats(fsStructure *structure.FspopStructure) {
-	message.Info("Structure File")
-	message.Text("├── Data Variables       " + fmt.Sprint(len(fsStructure.Data)))
-	message.Text("├── Dynamic Variables    " + fmt.Sprint(len(fsStructure.Dynamic)))
-	message.Text("└── Structure Endpoints  " + fmt.Sprint(len(fsStructure.Items)))
-	message.Text("")
+	UI := ui.GetUi()
+
+	UI.Info("Structure File")
+	UI.Output("├── Data Variables       " + fmt.Sprint(len(fsStructure.Data)))
+	UI.Output("├── Dynamic Variables    " + fmt.Sprint(len(fsStructure.Dynamic)))
+	UI.Output("└── Structure Endpoints  " + fmt.Sprint(len(fsStructure.Items)))
+	UI.Output("")
 }
 
 // Fetch data key payload AND write data to an open file

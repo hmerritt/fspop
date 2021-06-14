@@ -98,6 +98,7 @@ func yamlFileContent() string {
 version: 4
 
 name: fspop-structure
+entrypoint: fspop/structure
 
 data:
   - example: text can be imported like this

@@ -83,7 +83,13 @@ func (c *DeployCommand) Run(args []string) int {
 				if !fsDynamicItem.IsTypeDirectory() {
 					// Resolve 'DataKey' into a data item
 					if fsDataItem, ok := fsStructure.GetDataItem(fsDynamicItem.DataKey); ok {
-						fileData, _ = resolveDataPayload(fsDataItem.Data)
+						var err error
+						fileData, err = resolveDataPayload(fsDataItem.Data)
+
+						if err != nil {
+							printError(bar, &errorCount, errors.New("unable to get data payload for "+fsDynamicItem.Key+": '"+fsDataItem.Data+"'"))
+							fileData = []byte(fsDataItem.Data) // Fallback to whatever the user set fsDataItem.Data to
+						}
 					}
 				}
 
@@ -96,19 +102,33 @@ func (c *DeployCommand) Run(args []string) int {
 					// Is directory
 					if fsDynamicItem.IsTypeDirectory() {
 						// Create full directory
-						os.MkdirAll(itemPath, os.ModePerm)
+						err := os.MkdirAll(itemPath, os.ModePerm)
+						if err != nil {
+							printError(bar, &errorCount, errors.New("unable to make directory for "+fsDynamicItem.Key+": '"+itemPath+"'"))
+						}
 
 						// Is file
 					} else {
 						// Create parent directory
-						os.MkdirAll(itemParentPath, os.ModePerm)
+						err := os.MkdirAll(itemParentPath, os.ModePerm)
+						if err != nil {
+							printError(bar, &errorCount, errors.New("unable to make directory for "+fsDynamicItem.Key+": '"+itemParentPath+"'"))
+							continue
+						}
 
 						// Create file
-						// TODO: check and print any errors
-						newFile, _ := parse.CreateFile(itemPath)
+						newFile, err := parse.CreateFile(itemPath)
+						if err != nil {
+							printError(bar, &errorCount, errors.New("unable to create file for "+fsDynamicItem.Key+": '"+itemPath+"'"))
+							newFile.Close()
+							continue
+						}
 
 						if len(fileData) > 0 {
-							newFile.Write(fileData)
+							_, err := newFile.Write(fileData)
+							if err != nil {
+								printError(bar, &errorCount, errors.New("unable to add data to file for "+fsDynamicItem.Key+": '"+itemPath+"'"))
+							}
 						}
 
 						newFile.Close()
@@ -127,21 +147,36 @@ func (c *DeployCommand) Run(args []string) int {
 		// Check if endpoint is a directory
 		if structure.IsDirectory(key) {
 			// Recursively make all directories
-			// TODO: check and print any errors
-			os.MkdirAll(fmt.Sprintf("%s/%s", fsStructure.Name, key), os.ModePerm)
+			err := os.MkdirAll(fmt.Sprintf("%s/%s", fsStructure.Name, key), os.ModePerm)
+			if err != nil {
+				printError(bar, &errorCount, errors.New("unable to make directory: '"+key+"'"))
+			}
 
 		} else {
 			// File
 			// Recursively make all parent directories
-			os.MkdirAll(fmt.Sprintf("%s/%s", fsStructure.Name, item.Path.ParentString()), os.ModePerm)
+			err := os.MkdirAll(fmt.Sprintf("%s/%s", fsStructure.Name, item.Path.ParentString()), os.ModePerm)
+			if err != nil {
+				printError(bar, &errorCount, errors.New("unable to make directory: '"+item.Path.ParentString()+"'"))
+				bar.Add(1)
+				continue
+			}
 
 			// Create empty file
-			// TODO: check and print any errors
-			newFile, _ := parse.CreateFile(fmt.Sprintf("%s/%s", fsStructure.Name, item.Path.ToString()))
+			newFile, err := parse.CreateFile(fmt.Sprintf("%s/%s", fsStructure.Name, item.Path.ToString()))
+			if err != nil {
+				printError(bar, &errorCount, errors.New("unable to create file: '"+item.Path.ToString()+"'"))
+				newFile.Close()
+				bar.Add(1)
+				continue
+			}
 
 			// Resolve 'DataKey' into a data item
 			if fsDataItem, ok := fsStructure.GetDataItem(item.DataKey); ok {
-				fetchAndWriteToFile(newFile, fsDataItem.Data)
+				err := fetchAndWriteToFile(newFile, fsDataItem.Data)
+				if err != nil {
+					printError(bar, &errorCount, errors.New("unable to add data to file ("+fmt.Sprint(err)+"): '"+item.Path.ToString()+"'"))
+				}
 			}
 
 			newFile.Close()
@@ -164,6 +199,17 @@ func (c *DeployCommand) Run(args []string) int {
 	return 0
 }
 
+// Print basic structure stats
+func printStructureStats(fsStructure *structure.FspopStructure) {
+	UI := ui.GetUi()
+
+	UI.Info("Structure File")
+	UI.Output("├── Data Variables       " + fmt.Sprint(len(fsStructure.Data)))
+	UI.Output("├── Dynamic Variables    " + fmt.Sprint(len(fsStructure.Dynamic)))
+	UI.Output("└── Structure Endpoints  " + fmt.Sprint(len(fsStructure.Items)))
+	UI.Output("")
+}
+
 // Prints an error while deploying
 // Handles printing aorund the progress-bar
 func printError(bar *progressbar.ProgressBar, errorCount *int, err error) {
@@ -184,17 +230,6 @@ func printError(bar *progressbar.ProgressBar, errorCount *int, err error) {
 	UI.Error(fmt.Sprintf("  -- %s\n", err))
 
 	*errorCount++
-}
-
-// Print basic structure stats
-func printStructureStats(fsStructure *structure.FspopStructure) {
-	UI := ui.GetUi()
-
-	UI.Info("Structure File")
-	UI.Output("├── Data Variables       " + fmt.Sprint(len(fsStructure.Data)))
-	UI.Output("├── Dynamic Variables    " + fmt.Sprint(len(fsStructure.Dynamic)))
-	UI.Output("└── Structure Endpoints  " + fmt.Sprint(len(fsStructure.Items)))
-	UI.Output("")
 }
 
 // Fetch data key payload AND write data to an open file

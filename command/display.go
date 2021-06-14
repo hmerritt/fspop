@@ -1,16 +1,16 @@
 package command
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/disiqueira/gotree"
-	"gitlab.com/merrittcorp/fspop/message"
 	"gitlab.com/merrittcorp/fspop/parse"
 	"gitlab.com/merrittcorp/fspop/structure"
 )
 
-type DisplayCommand struct{}
+type DisplayCommand struct {
+	*BaseCommand
+}
 
 func (c *DisplayCommand) Synopsis() string {
 	return "Print the directory tree of a structure file"
@@ -38,9 +38,8 @@ func (c *DisplayCommand) Run(args []string) int {
 		// Use default structure file
 		// Checks for both '.yaml' and '.yml' extensions
 		path = parse.AddYamlExtension(parse.ElasticExtension(parse.DefaultYamlFileName))
-		message.Warn("No file entered.")
-		message.Warn("Trying default '" + path + "' instead.")
-		message.Text("")
+		c.UI.Warn("No file entered.")
+		c.UI.Warn("Trying default '" + path + "' instead.\n")
 	} else {
 		path = parse.ElasticExtension(args[0])
 	}
@@ -76,7 +75,7 @@ func (c *DisplayCommand) Run(args []string) int {
 	})
 
 	// Print tree
-	fmt.Println(tree.Print())
+	c.UI.Output(tree.Print())
 
 	return 0
 }

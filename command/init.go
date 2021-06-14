@@ -5,11 +5,12 @@ import (
 	"os"
 	"strings"
 
-	"gitlab.com/merrittcorp/fspop/message"
 	"gitlab.com/merrittcorp/fspop/parse"
 )
 
-type InitCommand struct{}
+type InitCommand struct {
+	*BaseCommand
+}
 
 func (c *InitCommand) Synopsis() string {
 	return "Create a new structure file"
@@ -40,41 +41,44 @@ func (c *InitCommand) Run(args []string) int {
 	// Check if file already exists
 	if parse.FileExists(path) {
 		// Exit. Dont't overwrite existing files
-		message.Error("Structure file '" + path + "' already exists.")
-		fmt.Println()
-		message.Warn("Rename or remove the existing file and try again.")
+		c.UI.Error("Structure file '" + path + "' already exists.\n")
+		c.UI.Warn("Rename or remove the existing file and try again.")
 		return 1
 	}
 
 	// Create structure file
 	file, err := os.Create(path)
 	if err != nil {
-		message.Error("Unable to create new structure file '" + path + "'.")
-		message.Error(fmt.Sprint(err))
+		c.UI.Error("Unable to create new structure file '" + path + "'.")
+		c.UI.Error(fmt.Sprint(err))
+		c.UI.Warn("\nThis is most likely due to a lack of permissions,")
+		c.UI.Warn("check you have write access to this directory.")
 		return 1
 	}
 
 	// Write content into file
 	_, err = file.WriteString(yamlFileContent())
 	if err != nil {
-		message.Error("Created structure file '" + path + "', but failed to write data into it.")
-		message.Error(fmt.Sprint(err))
 		file.Close()
+
+		c.UI.Error("Created structure file '" + path + "', but failed to write data into it.")
+		c.UI.Error(fmt.Sprint(err))
+		c.UI.Warn("\nThis is most likely due to a lack of permissions,")
+		c.UI.Warn("check you have write access to this file and directory.")
 		return 1
 	}
 
 	// Close file
 	err = file.Close()
 	if err != nil {
-		message.Error(fmt.Sprint(err))
+		c.UI.Error("Created structure file '" + path + "', but somthing went wrong when finalising it.")
+		c.UI.Error(fmt.Sprint(err))
 		return 1
 	}
 
-	fmt.Println(message.Green("Success.") + ` Created '` + path + `' structure file.
-
-Structure files can be deployed using the command:
-
-$ fspop deploy ` + path)
+	c.UI.Output(c.UI.Colorize("Success.", c.UI.SuccessColor) + " Created '" + path + "' structure file.\n")
+	c.UI.Output("Deploy this structure file using the command:")
+	c.UI.Output("$ fspop deploy " + path + "")
 
 	return 0
 }

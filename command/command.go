@@ -27,6 +27,7 @@ func Run() {
 						ErrorWriter: os.Stderr,
 					},
 				},
+				cli.UiColorGreen,
 			},
 		}
 	}
@@ -75,13 +76,14 @@ type BaseCommand struct {
 // this method is used for green output.
 type cliUi struct {
 	*cli.ColoredUi
+	SuccessColor cli.UiColor
 }
 
 func (u *cliUi) Success(message string) {
-	u.Ui.Output(u.colorize(message, cli.UiColorGreen))
+	u.Ui.Output(u.Colorize(message, cli.UiColorGreen))
 }
 
-func (u *cliUi) colorize(message string, uc cli.UiColor) string {
+func (u *cliUi) Colorize(message string, uc cli.UiColor) string {
 	const noColor = -1
 
 	if uc.Code == noColor {

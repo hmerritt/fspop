@@ -66,11 +66,12 @@ func ParseYaml(data []byte) (structure.YamlStructure, error) {
 // searchable structure which is used from here-on-out.
 func RefineYaml(parsedYamlStructure structure.YamlStructure) (*structure.FspopStructure, error) {
 	refinedStructure := &structure.FspopStructure{
-		Version: parsedYamlStructure.Version,
-		Name:    parsedYamlStructure.Name,
-		Data:    make(map[string]*structure.FspopData),
-		Dynamic: make(map[string]*structure.FspopDynamic),
-		Items:   make(map[string]*structure.FspopItem),
+		Version:    parsedYamlStructure.Version,
+		Name:       parsedYamlStructure.Name,
+		Entrypoint: parsedYamlStructure.Entrypoint,
+		Data:       make(map[string]*structure.FspopData),
+		Dynamic:    make(map[string]*structure.FspopDynamic),
+		Items:      make(map[string]*structure.FspopItem),
 	}
 
 	// Check if parsed YAML is a valid structure file

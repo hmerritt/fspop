@@ -80,47 +80,30 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) (*structure.FspopSt
 	}
 
 	// Refine 'data:' items
-	refineYamlData(&parsedYamlStructure, refinedStructure)
-
-	// Refine 'dynamic:' items
-	refineYamlDynamic(&parsedYamlStructure, refinedStructure)
-
-	// Refine 'structure:' items
-	refineYamlItems(&parsedYamlStructure, refinedStructure)
-
-	// TODO: build directory tree structure
-
-	return refinedStructure, nil
-}
-
-// Refine 'data:' key in yaml structure file
-func refineYamlData(parsedYamlStructure *structure.YamlStructure, refinedStructure *structure.FspopStructure) {
 	if parsedYamlStructure.Data != nil {
 		callback := func(fsData structure.FspopData) {
 			refinedStructure.Data[fsData.Key] = &fsData
 		}
 		parsedYamlStructure.TraverseData(callback)
 	}
-}
 
-// Refine 'dynamic:' key in yaml structure file
-func refineYamlDynamic(parsedYamlStructure *structure.YamlStructure, refinedStructure *structure.FspopStructure) {
+	// Refine 'dynamic:' items
 	if parsedYamlStructure.Dynamic != nil {
 		callback := func(fsDynamic structure.FspopDynamic) {
 			refinedStructure.Dynamic[fsDynamic.Key] = &fsDynamic
 		}
 		parsedYamlStructure.TraverseDynamic(callback)
 	}
-}
 
-// Crawl through the 'structure:' items key in the messy parsed yaml
-// figuring out whats-what and organising it one item at a time.
-// Will detect and output file data and dynamic keys.
-func refineYamlItems(parsedYamlStructure *structure.YamlStructure, refinedStructure *structure.FspopStructure) {
+	// Refine 'structure:' items
 	if parsedYamlStructure.Structure != nil {
 		callback := func(fsItem structure.FspopItem) {
 			refinedStructure.Items[fsItem.Path.ToString()] = &fsItem
 		}
 		parsedYamlStructure.TraverseStructureEndpoints(callback)
 	}
+
+	// TODO: build directory tree structure
+
+	return refinedStructure, nil
 }

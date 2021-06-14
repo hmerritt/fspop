@@ -1,11 +1,13 @@
 package command
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/schollz/progressbar/v3"
 	"gitlab.com/merrittcorp/fspop/message"
 	"gitlab.com/merrittcorp/fspop/parse"
 	"gitlab.com/merrittcorp/fspop/structure"
@@ -49,10 +51,17 @@ func (c *DeployCommand) Run(args []string) int {
 	// Fetch structure
 	fsStructure := parse.FetchAndParseStructure(path)
 
-	timeStart := time.Now()
-
 	// Print structure stats
 	printStructureStats(fsStructure)
+
+	// Record the total duration of this command
+	timeStart := time.Now()
+
+	// Initiate error slice and counter
+	// Collects errors
+	// TODO: make this a type + methods
+	// errorSlice := make([]error, 0, 1)
+	errorCount := 0
 
 	// Initiate progress bar
 	bar := message.GetProgressBar(len(fsStructure.Items), " Deploying")
@@ -106,10 +115,10 @@ func (c *DeployCommand) Run(args []string) int {
 						newFile.Close()
 					}
 				}
-			} //else {
-			// 	// Dynamic key does not exist
-			// 	fmt.Println("Dynamic key does not exist")
-			// }
+			} else {
+				// Dynamic key does not exist
+				printDeployError(bar, &errorCount, errors.New("dynamic key does not exist: '"+item.DynamicKey+"'"))
+			}
 
 			bar.Add(1)
 			continue
@@ -147,6 +156,26 @@ func (c *DeployCommand) Run(args []string) int {
 	fmt.Printf("%s in %s\n", message.Green("Structure deployed"), time.Since(timeStart))
 
 	return 0
+}
+
+// Prints an error while deploying
+// Handles printing aorund the progress-bar
+func printDeployError(bar *progressbar.ProgressBar, errorCount *int, err error) {
+	// Remove the progress bar from the current line
+	bar.Clear()
+
+	// Check if first error
+	// Setup error list for the first error
+	if *errorCount == 0 {
+		message.Error("ERROR:")
+	} else {
+		fmt.Println("\r\033[A\r\033[A")
+	}
+
+	// Print error
+	message.Error(fmt.Sprintf("  -- %s\n\n", err))
+
+	*errorCount++
 }
 
 // Print basic structure stats

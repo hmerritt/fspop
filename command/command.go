@@ -50,6 +50,11 @@ func Run() {
 		os.Stderr.WriteString(fmt.Sprint(err))
 	}
 
+	// Exit without an error if no arguments were passed
+	if len(app.Args) == 0 {
+		os.Exit(0)
+	}
+
 	os.Exit(exitStatus)
 }
 

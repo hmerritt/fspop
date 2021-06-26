@@ -80,14 +80,13 @@ func (c *DeployCommand) Run(args []string) int {
 			// Get actual dynamic item from 'DynamicKey'
 			fsDynamicItem, ok := fsStructure.Dynamic[item.DynamicKey]
 
-			if !ok {
-				// Dynamic key does not exist
+			if ok {
+				// Deploy dynamic item
+				deployDynamicItem(fsStructure, item, fsDynamicItem, bar, &errorCount)
+			} else {
+				// Error: Dynamic key does not exist
 				printError(bar, &errorCount, errors.New("dynamic key does not exist: '"+item.DynamicKey+"'"))
-				bar.Add(1)
-				continue
 			}
-
-			deployDynamicItem(fsStructure, item, fsDynamicItem, bar, &errorCount)
 
 			bar.Add(1)
 			continue

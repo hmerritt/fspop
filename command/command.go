@@ -57,10 +57,3 @@ func Run() {
 
 	os.Exit(exitStatus)
 }
-
-// Master command type which in present in all commands
-//
-// Used to standardize UI output
-type BaseCommand struct {
-	UI *ui.Ui
-}

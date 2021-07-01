@@ -18,14 +18,12 @@ var FlagNames = []string{flagStrict.Name, flagForce.Name}
 // Slice of global flag names
 var FlagNamesGlobal = []string{flagStrict.Name, flagForce.Name}
 
-// Master command type which in present in all commands
+// Master command type which is present in all commands
 //
 // Used to standardize UI output
 type BaseCommand struct {
 	UI *ui.Ui
 }
-
-type FlagMap map[string]*Flag
 
 type Flag struct {
 	Name       string
@@ -34,6 +32,21 @@ type Flag struct {
 	Value      interface{}
 	Completion complete.Predictor
 }
+
+type FlagMap map[string]*Flag
+
+// Help builds usage string for all flags in a FlagMap
+func (fm *FlagMap) Help() string {
+	var out bytes.Buffer
+
+	for _, flag := range *fm {
+		fmt.Fprintf(&out, "  --%s \n      %s\n\n", flag.Name, flag.Usage)
+	}
+
+	return strings.TrimRight(out.String(), "\n")
+}
+
+// flag definitions
 
 // flag --strict
 //
@@ -53,15 +66,4 @@ var flagForce = Flag{
 	Usage:   "Bypasses CLI prompts without asking for confirmation.",
 	Default: false,
 	Value:   false,
-}
-
-// Help builds usage string for all flags
-func (fm *FlagMap) Help() string {
-	var out bytes.Buffer
-
-	for _, flag := range *fm {
-		fmt.Fprintf(&out, "  --%s \n      %s\n\n", flag.Name, flag.Usage)
-	}
-
-	return strings.TrimRight(out.String(), "\n")
 }

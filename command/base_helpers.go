@@ -1,6 +1,10 @@
 package command
 
-import "github.com/mitchellh/go-wordwrap"
+import (
+	"fmt"
+
+	"github.com/mitchellh/go-wordwrap"
+)
 
 // Wraps the given text to maxLineLength.
 func WrapAtLength(s string) string {
@@ -38,4 +42,19 @@ func GetFlagMap(which []string) *FlagMap {
 	addToMap(&flagForce)
 
 	return &fm
+}
+
+// Detect long flags entered with one dash '-'
+// and add a dash to prevent a panic when parsing
+//
+// -strict -> --strict
+func flagSingleToDoubleDash(args []string) []string {
+	for i, arg := range args {
+		for _, fl := range FlagNames {
+			if arg == fmt.Sprintf("-%s", fl) {
+				args[i] = fmt.Sprintf("--%s", fl)
+			}
+		}
+	}
+	return args
 }

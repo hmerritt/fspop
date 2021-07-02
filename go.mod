@@ -13,8 +13,10 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/imroc/req v0.3.0
+	github.com/jessevdk/go-flags v1.5.0 // indirect
 	github.com/mitchellh/cli v1.1.2
 	github.com/mitchellh/copystructure v1.1.2 // indirect
+	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/mitchellh/gox v1.0.1
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/schollz/progressbar/v3 v3.8.1

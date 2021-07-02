@@ -23,7 +23,6 @@ Usage: fspop init [options] NAME
   Init will create a new structure file.
 
   Structure files can be deployed using the command:
-
   $ fspop deploy <NAME>
 
 `

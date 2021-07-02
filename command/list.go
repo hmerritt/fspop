@@ -27,11 +27,6 @@ Usage: fspop list [options] PATH
   - .yml
   - .yaml
 
-  Thease files (could) be fspop structure files
-  that can be deployed using the command:
-
-  $ fspop deploy <NAME>
-
 `
 
 	return strings.TrimSpace(helpText)

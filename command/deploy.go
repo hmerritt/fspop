@@ -25,18 +25,33 @@ func (c *DeployCommand) Help() string {
 	helpText := `
 Usage: fspop deploy [options] NAME
   
-  Deploy creates the file-structure defined in a structure config-file.
+  Deploy creates the file-structure defined in a structure config file.
 
   Structure files can be created using the command:
-
   $ fspop init <NAME>
 
-`
+Options:
+
+` + c.Flags().Help()
 
 	return strings.TrimSpace(helpText)
 }
 
+func (c *DeployCommand) Flags() *FlagMap {
+	return GetFlagMap(FlagNamesGlobal)
+}
+
+func (c *DeployCommand) strictExit() {
+	if c.Flags().Get("strict").Value == true {
+		c.UI.Error("\nAn error occured while using the '--strict' flag.")
+		// c.UI.Warn("(There is likely error messages above on what went wrong.)")
+		os.Exit(1)
+	}
+}
+
 func (c *DeployCommand) Run(args []string) int {
+	args = c.Flags().Parse(c.UI, args)
+
 	var path string
 
 	if len(args) == 0 {
@@ -44,6 +59,7 @@ func (c *DeployCommand) Run(args []string) int {
 		// Checks for both '.yaml' and '.yml' extensions
 		path = parse.AddYamlExtension(parse.ElasticExtension(parse.DefaultYamlFileName))
 		c.UI.Warn("No file entered.")
+		c.strictExit()
 		c.UI.Warn("Trying default '" + path + "' instead.\n")
 	} else {
 		path = parse.ElasticExtension(args[0])
@@ -58,6 +74,18 @@ func (c *DeployCommand) Run(args []string) int {
 	c.UI.Output("├── Dynamic Variables    " + fmt.Sprint(len(fsStructure.Dynamic)))
 	c.UI.Output("└── Structure Endpoints  " + fmt.Sprint(len(fsStructure.Items)))
 	c.UI.Output("")
+
+	// Check if entrypoint directory already exists.
+	// If so, only deploy if --force is true
+	if stat, err := os.Stat(fsStructure.GetEntrypoint()); err == nil && stat.IsDir() {
+		if c.Flags().Get("force").Value == true {
+			c.UI.Warn("--force flag is enabled. Existing files/folders may be overwritten.\n")
+		} else {
+			c.UI.Error("Entrypoint directory '" + fsStructure.GetEntrypoint() + "' already exists.\nfspop does not deploy to existing directories.")
+			c.UI.Warn("\nUse '--force' flag to deploy to an existing directory.")
+			os.Exit(1)
+		}
+	}
 
 	// Record the total duration of this command
 	timeStart := time.Now()
@@ -80,20 +108,19 @@ func (c *DeployCommand) Run(args []string) int {
 			// Get actual dynamic item from 'DynamicKey'
 			fsDynamicItem, ok := fsStructure.Dynamic[item.DynamicKey]
 
-			if !ok {
-				// Dynamic key does not exist
-				printError(bar, &errorCount, errors.New("dynamic key does not exist: '"+item.DynamicKey+"'"))
-				bar.Add(1)
-				continue
+			if ok {
+				// Deploy dynamic item
+				deployDynamicItem(fsStructure, item, fsDynamicItem, c, bar, &errorCount)
+			} else {
+				// Error: Dynamic key does not exist
+				printError(c, bar, &errorCount, errors.New("dynamic key does not exist: '"+item.DynamicKey+"'"))
 			}
-
-			deployDynamicItem(fsStructure, item, fsDynamicItem, bar, &errorCount)
 
 			bar.Add(1)
 			continue
 		}
 
-		deployItem(fsStructure, item, key, bar, &errorCount)
+		deployItem(fsStructure, item, key, c, bar, &errorCount)
 
 		bar.Add(1)
 	}
@@ -101,7 +128,7 @@ func (c *DeployCommand) Run(args []string) int {
 	c.UI.Output("\n")
 
 	if errorCount > 0 {
-		// c.UI.Warn("Use '--strict' flag to stop immediately if any errors occur\n")
+		c.UI.Warn("Use '--strict' flag to stop immediately if any errors occur\n")
 
 		c.UI.Output(fmt.Sprintf("%s in %s", c.UI.Colorize("Structure deployed (with "+fmt.Sprint(errorCount)+" errors)", c.UI.WarnColor), time.Since(timeStart)))
 		return 1
@@ -113,7 +140,7 @@ func (c *DeployCommand) Run(args []string) int {
 }
 
 // Main procedure to deploy a dynamic item
-func deployDynamicItem(fsStructure *structure.FspopStructure, item *structure.FspopItem, fsDynamicItem *structure.FspopDynamic, bar *progressbar.ProgressBar, errorCount *int) {
+func deployDynamicItem(fsStructure *structure.FspopStructure, item *structure.FspopItem, fsDynamicItem *structure.FspopDynamic, c *DeployCommand, bar *progressbar.ProgressBar, errorCount *int) {
 	// Create empty fileData
 	fileData := make([]byte, 0)
 
@@ -126,7 +153,7 @@ func deployDynamicItem(fsStructure *structure.FspopStructure, item *structure.Fs
 			fileData, err = resolveDataPayload(fsDataItem.Data)
 
 			if err != nil {
-				printError(bar, errorCount, errors.New("unable to get data payload for "+fsDynamicItem.Key+": '"+fsDataItem.Data+"'"))
+				printError(c, bar, errorCount, errors.New("unable to get data payload for "+fsDynamicItem.Key+": '"+fsDataItem.Data+"'"))
 				fileData = []byte(fsDataItem.Data) // Fallback to whatever the user set fsDataItem.Data to
 			}
 		}
@@ -143,7 +170,7 @@ func deployDynamicItem(fsStructure *structure.FspopStructure, item *structure.Fs
 			// Create full directory
 			err := os.MkdirAll(itemPath, os.ModePerm)
 			if err != nil {
-				printError(bar, errorCount, errors.New("unable to make directory for "+fsDynamicItem.Key+": '"+itemPath+"'"))
+				printError(c, bar, errorCount, errors.New("unable to make directory for "+fsDynamicItem.Key+": '"+itemPath+"'"))
 			}
 
 			// Is file
@@ -151,14 +178,14 @@ func deployDynamicItem(fsStructure *structure.FspopStructure, item *structure.Fs
 			// Create parent directory
 			err := os.MkdirAll(itemParentPath, os.ModePerm)
 			if err != nil {
-				printError(bar, errorCount, errors.New("unable to make directory for "+fsDynamicItem.Key+": '"+itemParentPath+"'"))
+				printError(c, bar, errorCount, errors.New("unable to make directory for "+fsDynamicItem.Key+": '"+itemParentPath+"'"))
 				continue
 			}
 
 			// Create file
 			newFile, err := parse.CreateFile(itemPath)
 			if err != nil {
-				printError(bar, errorCount, errors.New("unable to create file for "+fsDynamicItem.Key+": '"+itemPath+"'"))
+				printError(c, bar, errorCount, errors.New("unable to create file for "+fsDynamicItem.Key+": '"+itemPath+"'"))
 				newFile.Close()
 				continue
 			}
@@ -166,7 +193,7 @@ func deployDynamicItem(fsStructure *structure.FspopStructure, item *structure.Fs
 			if len(fileData) > 0 {
 				_, err := newFile.Write(fileData)
 				if err != nil {
-					printError(bar, errorCount, errors.New("unable to add data to file for "+fsDynamicItem.Key+": '"+itemPath+"'"))
+					printError(c, bar, errorCount, errors.New("unable to add data to file for "+fsDynamicItem.Key+": '"+itemPath+"'"))
 				}
 			}
 
@@ -176,14 +203,14 @@ func deployDynamicItem(fsStructure *structure.FspopStructure, item *structure.Fs
 }
 
 // Main procedure to deploy an item (files/folders only, not dynamic items)
-func deployItem(fsStructure *structure.FspopStructure, item *structure.FspopItem, key string, bar *progressbar.ProgressBar, errorCount *int) {
+func deployItem(fsStructure *structure.FspopStructure, item *structure.FspopItem, key string, c *DeployCommand, bar *progressbar.ProgressBar, errorCount *int) {
 	// Directory
 	// Check if endpoint is a directory
 	if structure.IsDirectory(key) {
 		// Recursively make all directories
 		err := os.MkdirAll(fmt.Sprintf("%s/%s", fsStructure.GetEntrypoint(), key), os.ModePerm)
 		if err != nil {
-			printError(bar, errorCount, errors.New("unable to make directory: '"+key+"'"))
+			printError(c, bar, errorCount, errors.New("unable to make directory: '"+key+"'"))
 		}
 
 	} else {
@@ -191,14 +218,14 @@ func deployItem(fsStructure *structure.FspopStructure, item *structure.FspopItem
 		// Recursively make all parent directories
 		err := os.MkdirAll(fmt.Sprintf("%s/%s", fsStructure.GetEntrypoint(), item.Path.ParentString()), os.ModePerm)
 		if err != nil {
-			printError(bar, errorCount, errors.New("unable to make directory: '"+item.Path.ParentString()+"'"))
+			printError(c, bar, errorCount, errors.New("unable to make directory: '"+item.Path.ParentString()+"'"))
 			return
 		}
 
 		// Create empty file
 		newFile, err := parse.CreateFile(fmt.Sprintf("%s/%s", fsStructure.GetEntrypoint(), item.Path.ToString()))
 		if err != nil {
-			printError(bar, errorCount, errors.New("unable to create file: '"+item.Path.ToString()+"'"))
+			printError(c, bar, errorCount, errors.New("unable to create file: '"+item.Path.ToString()+"'"))
 			newFile.Close()
 			return
 		}
@@ -207,7 +234,7 @@ func deployItem(fsStructure *structure.FspopStructure, item *structure.FspopItem
 		if fsDataItem, ok := fsStructure.GetDataItem(item.DataKey); ok {
 			err := fetchAndWriteToFile(newFile, fsDataItem.Data)
 			if err != nil {
-				printError(bar, errorCount, errors.New("unable to add data to file ("+fmt.Sprint(err)+"): '"+item.Path.ToString()+"'"))
+				printError(c, bar, errorCount, errors.New("unable to add data to file ("+fmt.Sprint(err)+"): '"+item.Path.ToString()+"'"))
 			}
 		}
 
@@ -217,22 +244,27 @@ func deployItem(fsStructure *structure.FspopStructure, item *structure.FspopItem
 
 // Prints an error while deploying
 // Handles printing aorund the progress-bar
-func printError(bar *progressbar.ProgressBar, errorCount *int, err error) {
+func printError(c *DeployCommand, bar *progressbar.ProgressBar, errorCount *int, err error) {
 	// Remove the progress bar from the current line
 	bar.Clear()
-
-	UI := ui.GetUi()
 
 	// Check if first error
 	// Setup error list for the first error
 	if *errorCount == 0 {
-		UI.Error("ERROR:")
+		c.UI.Error("ERROR:")
 	} else {
 		fmt.Print("\r\033[A")
 	}
 
 	// Print error
-	UI.Error(fmt.Sprintf("  -- %s\n", err))
+	c.UI.Error(fmt.Sprintf("  -- %s\n", err))
+
+	// Exif IF --strict
+	if c.Flags().Get("strict").Value == true {
+		bar.Add(1)
+		c.UI.Output("")
+		c.strictExit()
+	}
 
 	*errorCount++
 }

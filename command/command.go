@@ -50,12 +50,10 @@ func Run() {
 		os.Stderr.WriteString(fmt.Sprint(err))
 	}
 
-	os.Exit(exitStatus)
-}
+	// Exit without an error if no arguments were passed
+	if len(app.Args) == 0 {
+		os.Exit(0)
+	}
 
-// Master command type which in present in all commands
-//
-// Used to standardize UI output
-type BaseCommand struct {
-	UI *ui.Ui
+	os.Exit(exitStatus)
 }

@@ -78,9 +78,13 @@ func (c *DeployCommand) Run(args []string) int {
 	// Check if entrypoint directory already exists.
 	// If so, only deploy if --force is true
 	if stat, err := os.Stat(fsStructure.GetEntrypoint()); err == nil && stat.IsDir() {
-		c.UI.Error("Entrypoint directory '" + fsStructure.GetEntrypoint() + "' already exists.\nfspop does not deploy to existing directories.")
-		c.UI.Warn("\nUse '--force' flag to deploy to an existing directory.")
-		os.Exit(1)
+		if c.Flags().Get("force").Value == true {
+			c.UI.Warn("--force flag is enabled. Existing files/folders may be overwritten.\n")
+		} else {
+			c.UI.Error("Entrypoint directory '" + fsStructure.GetEntrypoint() + "' already exists.\nfspop does not deploy to existing directories.")
+			c.UI.Warn("\nUse '--force' flag to deploy to an existing directory.")
+			os.Exit(1)
+		}
 	}
 
 	// Record the total duration of this command

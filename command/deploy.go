@@ -75,6 +75,14 @@ func (c *DeployCommand) Run(args []string) int {
 	c.UI.Output("└── Structure Endpoints  " + fmt.Sprint(len(fsStructure.Items)))
 	c.UI.Output("")
 
+	// Check if entrypoint directory already exists.
+	// If so, only deploy if --force is true
+	if stat, err := os.Stat(fsStructure.GetEntrypoint()); err == nil && stat.IsDir() {
+		c.UI.Error("Entrypoint directory '" + fsStructure.GetEntrypoint() + "' already exists.\nfspop does not deploy to existing directories.")
+		c.UI.Warn("\nUse '--force' flag to deploy to an existing directory.")
+		os.Exit(1)
+	}
+
 	// Record the total duration of this command
 	timeStart := time.Now()
 
@@ -236,23 +244,21 @@ func printError(c *DeployCommand, bar *progressbar.ProgressBar, errorCount *int,
 	// Remove the progress bar from the current line
 	bar.Clear()
 
-	UI := ui.GetUi()
-
 	// Check if first error
 	// Setup error list for the first error
 	if *errorCount == 0 {
-		UI.Error("ERROR:")
+		c.UI.Error("ERROR:")
 	} else {
 		fmt.Print("\r\033[A")
 	}
 
 	// Print error
-	UI.Error(fmt.Sprintf("  -- %s\n", err))
+	c.UI.Error(fmt.Sprintf("  -- %s\n", err))
 
 	// Exif IF --strict
 	if c.Flags().Get("strict").Value == true {
 		bar.Add(1)
-		UI.Output("")
+		c.UI.Output("")
 		c.strictExit()
 	}
 

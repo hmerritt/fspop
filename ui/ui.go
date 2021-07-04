@@ -17,6 +17,7 @@ type Ui struct {
 func GetUi() *Ui {
 	return &Ui{
 		&cli.ColoredUi{
+			InfoColor:  cli.UiColorCyan,
 			ErrorColor: cli.UiColorRed,
 			WarnColor:  cli.UiColorYellow,
 			Ui: &cli.BasicUi{

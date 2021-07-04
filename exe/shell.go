@@ -10,7 +10,7 @@ import (
 )
 
 // Execute command via a shell, and log the output
-func Run(shell, command, entrypoint string) {
+func Run(shell, command, entrypoint string) error {
 	UI := ui.GetUi()
 
 	// Setup command to exec
@@ -20,12 +20,18 @@ func Run(shell, command, entrypoint string) {
 
 	// Run command and print output
 	out, err := run.CombinedOutput()
-	if err != nil {
-		UI.Error(fmt.Sprint(err))
-	}
 
 	UI.Output(strings.TrimSpace(string(out)))
+
+	if err != nil {
+		UI.Error(fmt.Sprint(err))
+		UI.Output("")
+		return err
+	}
+
 	UI.Output("")
+
+	return nil
 }
 
 // Returns shell name for OS.

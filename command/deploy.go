@@ -141,7 +141,11 @@ func (c *DeployCommand) Run(args []string) int {
 			if len(fsAction.Script) == 1 && ok {
 				// Run command and print output
 				c.UI.Info(fmt.Sprintf("%s #> %s", fsAction.Key, fsAction.Script[0]))
-				exe.Run(exe.ScriptCommandExe(scriptPath), scriptPath, ".")
+				err := exe.Run(exe.ScriptCommandExe(scriptPath), scriptPath, ".")
+				if err != nil {
+					errorCount++
+					c.strictExit()
+				}
 				continue
 			}
 
@@ -149,7 +153,12 @@ func (c *DeployCommand) Run(args []string) int {
 			for _, command := range fsAction.Script {
 				// Run command and print output
 				c.UI.Info(fmt.Sprintf("%s #> %s", fsAction.Key, command))
-				exe.Run(exe.GetOsShell(), command, fsStructure.Entrypoint)
+				err := exe.Run(exe.GetOsShell(), command, fsStructure.Entrypoint)
+
+				if err != nil {
+					errorCount++
+					c.strictExit()
+				}
 			}
 		}
 	}

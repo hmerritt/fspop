@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/schollz/progressbar/v3"
+	"gitlab.com/merrittcorp/fspop/exe"
 	"gitlab.com/merrittcorp/fspop/parse"
 	"gitlab.com/merrittcorp/fspop/structure"
 	"gitlab.com/merrittcorp/fspop/ui"
@@ -69,7 +70,7 @@ func (c *DeployCommand) Run(args []string) int {
 	fsStructure := parse.FetchAndParseStructure(path)
 
 	// Print structure stats
-	c.UI.Info("Structure File")
+	c.UI.Output("Structure File")
 	c.UI.Output("├── Data Variables       " + fmt.Sprint(len(fsStructure.Data)))
 	c.UI.Output("├── Dynamic Variables    " + fmt.Sprint(len(fsStructure.Dynamic)))
 	c.UI.Output("└── Structure Endpoints  " + fmt.Sprint(len(fsStructure.Items)))
@@ -126,6 +127,41 @@ func (c *DeployCommand) Run(args []string) int {
 	}
 
 	c.UI.Output("\n")
+
+	// Check for any post-deploy 'Actions' scripts
+	if len(fsStructure.Actions) > 0 {
+		c.UI.Output("Post-Deploy Actions:\n")
+
+		// Loop all Actions
+		for _, fsAction := range fsStructure.Actions {
+			// Check if first item in fsAction is not a command
+			// and is actually a script to be executed
+			// e.g. /usr/bin/backup.sh
+			ok, scriptPath := exe.ScriptExists(fsAction.Script[0], fsStructure.Entrypoint)
+			if len(fsAction.Script) == 1 && ok {
+				// Run command and print output
+				c.UI.Info(ui.WrapAtLength(fmt.Sprintf("%s #> %s", fsAction.Key, fsAction.Script[0])))
+				err := exe.Run(exe.ScriptCommandExe(scriptPath), scriptPath, ".")
+				if err != nil {
+					errorCount++
+					c.strictExit()
+				}
+				continue
+			}
+
+			// Loop each script command
+			for _, command := range fsAction.Script {
+				// Run command and print output
+				c.UI.Info(ui.WrapAtLength(fmt.Sprintf("%s #> %s", fsAction.Key, command)))
+				err := exe.Run(exe.GetOsShell(), command, fsStructure.Entrypoint)
+
+				if err != nil {
+					errorCount++
+					c.strictExit()
+				}
+			}
+		}
+	}
 
 	if errorCount > 0 {
 		c.UI.Warn("Use '--strict' flag to stop immediately if any errors occur\n")

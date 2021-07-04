@@ -9,9 +9,15 @@ type YamlStructure struct {
 	Version    string
 	Name       string
 	Entrypoint string
+	Actions    interface{}
 	Data       interface{}
 	Dynamic    interface{}
 	Structure  interface{}
+}
+
+type FspopAction struct {
+	Key    string
+	Script []string
 }
 
 type FspopData struct {
@@ -39,6 +45,7 @@ type FspopStructure struct {
 	Version    string
 	Name       string
 	Entrypoint string
+	Actions    []*FspopAction
 	Data       map[string]*FspopData
 	Dynamic    map[string]*FspopDynamic
 	Items      map[string]*FspopItem

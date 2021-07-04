@@ -80,6 +80,14 @@ func RefineYaml(parsedYamlStructure structure.YamlStructure) (*structure.FspopSt
 		return refinedStructure, isValidErr
 	}
 
+	// Refine 'actions:' items
+	if parsedYamlStructure.Actions != nil {
+		callback := func(fsAction structure.FspopAction) {
+			refinedStructure.Actions = append(refinedStructure.Actions, &fsAction)
+		}
+		parsedYamlStructure.TraverseActions(callback)
+	}
+
 	// Refine 'data:' items
 	if parsedYamlStructure.Data != nil {
 		callback := func(fsData structure.FspopData) {

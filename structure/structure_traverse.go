@@ -5,6 +5,45 @@ import (
 	"strings"
 )
 
+// Traverse each actions key slice in an unrefined YAML structure
+func (fsYamlStruct *YamlStructure) TraverseActions(callback func(FspopAction)) {
+	// Skip traversal if actions key is empty
+	if fsYamlStruct.Actions == nil {
+		return
+	}
+
+	// Iterate each action variable map individually
+	for _, actionsMap := range fsYamlStruct.Actions.([]interface{}) {
+		// Get actions key and it's values as a slice (or singular string)
+		//
+		// actionsItem is not guaranteed to be a slice - it could also be a string
+		for key, actionsItem := range actionsMap.(map[interface{}]interface{}) {
+			// Create action slice
+			fsAction := FspopAction{
+				Key:    fmt.Sprint(key),
+				Script: make([]string, 0, 5),
+			}
+
+			// Detirmine if actionsItem is a single string or slice []string
+			switch actionsItem.(type) {
+			case string:
+				// Add string as-is to fsAction
+				fsAction.Script = append(fsAction.Script, fmt.Sprint(actionsItem))
+
+			case []interface{}:
+				// Convert actionsItem: []interface{} -> []string
+				actionItemStrings := make([]string, len(actionsItem.([]interface{})))
+				for i, v := range actionsItem.([]interface{}) {
+					actionItemStrings[i] = fmt.Sprint(v)
+				}
+				fsAction.Script = append(fsAction.Script, actionItemStrings...)
+			}
+
+			callback(fsAction)
+		}
+	}
+}
+
 // Traverse each data key & value in an unrefined YAML structure
 func (fsYamlStruct *YamlStructure) TraverseData(callback func(FspopData)) {
 	// Skip traversal if data key is empty
@@ -26,7 +65,7 @@ func (fsYamlStruct *YamlStructure) TraverseData(callback func(FspopData)) {
 
 // Traverse each dynamic key map in an unrefined YAML structure
 func (fsYamlStruct *YamlStructure) TraverseDynamic(callback func(FspopDynamic)) {
-	// Skip traversal if data key is empty
+	// Skip traversal if dynamic key is empty
 	if fsYamlStruct.Dynamic == nil {
 		return
 	}

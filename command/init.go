@@ -94,10 +94,15 @@ func yamlFileContent() string {
 ## data-file: data_var - files can have custum data by assigning a data variable 'file: your_data_variable'
 ## $dynamic_item       - dynamic items have a dollar prefix '$' + 'your_dynamic_variable'
 ###########################
-version: 4
+version: 5
 
 name: fspop-structure
 entrypoint: fspop/structure
+
+actions:
+  - example:
+    - echo "Hello, There - Thanks for using fspop!"
+    - echo "(Check the structure.yml file to see more about actions / running scripts after a deployment)"
 
 data:
   - example: text can be imported like this

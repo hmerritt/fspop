@@ -2,14 +2,7 @@ package command
 
 import (
 	"fmt"
-
-	"github.com/mitchellh/go-wordwrap"
 )
-
-// Wraps the given text to maxLineLength.
-func WrapAtLength(s string) string {
-	return wordwrap.WrapString(s, maxLineLength)
-}
 
 // Populate map of select flags (defaults to ALL flags)
 //

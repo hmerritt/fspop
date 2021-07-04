@@ -17,9 +17,10 @@ func (fsYamlStruct *YamlStructure) TraverseActions(callback func(FspopAction)) {
 		// Get actions key and it's values as a slice (or singular string)
 		//
 		// actionsItem is not guaranteed to be a slice - it could also be a string
-		for _, actionsItem := range actionsMap.(map[interface{}]interface{}) {
+		for key, actionsItem := range actionsMap.(map[interface{}]interface{}) {
 			// Create action slice
 			fsAction := FspopAction{
+				Key:    fmt.Sprint(key),
 				Script: make([]string, 0, 5),
 			}
 

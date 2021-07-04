@@ -16,6 +16,7 @@ type YamlStructure struct {
 }
 
 type FspopAction struct {
+	Key    string
 	Script []string
 }
 

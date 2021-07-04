@@ -26,6 +26,15 @@ func (fsYamlStruct *YamlStructure) IsValid() (bool, error) {
 
 	// Expected types
 
+	// Actions key, check if it exists
+	if fsYamlStruct.Actions != nil {
+		// Actions key should be an []interface{}
+		_, ok := fsYamlStruct.Actions.([]interface{})
+		if !ok {
+			return false, errors.New("'actions:' key format is invalid")
+		}
+	}
+
 	// Data key, check if it exists
 	if fsYamlStruct.Data != nil {
 		// Data key should be an []interface{}

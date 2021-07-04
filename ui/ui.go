@@ -6,7 +6,11 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/mitchellh/cli"
+	"github.com/mitchellh/go-wordwrap"
 )
+
+// Maximum width of any line, in character count.
+const MaxLineLength = 75
 
 // Extend cli.ColoredUi struct and interface
 type Ui struct {
@@ -51,4 +55,9 @@ func (u *Ui) Colorize(message string, uc cli.UiColor) string {
 	}
 
 	return color.New(attr...).SprintFunc()(message)
+}
+
+// Wraps the given text to maxLineLength.
+func WrapAtLength(s string) string {
+	return wordwrap.WrapString(s, MaxLineLength)
 }

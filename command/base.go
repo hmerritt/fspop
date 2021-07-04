@@ -11,9 +11,6 @@ import (
 	"gitlab.com/merrittcorp/fspop/ui"
 )
 
-// Maximum width of any line, in character count.
-const maxLineLength = 75
-
 // Slice of all flag names
 var FlagNames = []string{flagStrict.Name, flagForce.Name}
 

@@ -29,9 +29,17 @@ func (fsYamlStruct *YamlStructure) IsValid() (bool, error) {
 	// Actions key, check if it exists
 	if fsYamlStruct.Actions != nil {
 		// Actions key should be an []interface{}
-		_, ok := fsYamlStruct.Actions.([]interface{})
+		actionsMapType, ok := fsYamlStruct.Actions.([]interface{})
 		if !ok {
 			return false, errors.New("'actions:' key format is invalid")
+		}
+
+		if len(actionsMapType) > 0 {
+			for _, actionsMap := range actionsMapType {
+				if _, ok := actionsMap.(map[interface{}]interface{}); !ok {
+					return false, errors.New("'actions:' key format is invalid")
+				}
+			}
 		}
 	}
 

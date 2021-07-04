@@ -13,9 +13,18 @@ import (
 func Run(shell, command, entrypoint string) error {
 	UI := ui.GetUi()
 
+	var run *exec.Cmd
+
 	// Setup command to exec
+	//
+	// Bash and sh require '-c' option
+	if shell == "bash" || shell == "sh" {
+		run = exec.Command(shell, "-c", command)
+	} else {
+		run = exec.Command(shell, command)
+	}
+
 	// Set exec directory to the entrypoint
-	run := exec.Command(shell, command)
 	run.Dir = entrypoint
 
 	// Run command and print output

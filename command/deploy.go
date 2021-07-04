@@ -140,7 +140,7 @@ func (c *DeployCommand) Run(args []string) int {
 			ok, scriptPath := exe.ScriptExists(fsAction.Script[0], fsStructure.Entrypoint)
 			if len(fsAction.Script) == 1 && ok {
 				// Run command and print output
-				c.UI.Info(fmt.Sprintf("%s #> %s", fsAction.Key, fsAction.Script[0]))
+				c.UI.Info(ui.WrapAtLength(fmt.Sprintf("%s #> %s", fsAction.Key, fsAction.Script[0])))
 				err := exe.Run(exe.ScriptCommandExe(scriptPath), scriptPath, ".")
 				if err != nil {
 					errorCount++
@@ -152,7 +152,7 @@ func (c *DeployCommand) Run(args []string) int {
 			// Loop each script command
 			for _, command := range fsAction.Script {
 				// Run command and print output
-				c.UI.Info(fmt.Sprintf("%s #> %s", fsAction.Key, command))
+				c.UI.Info(ui.WrapAtLength(fmt.Sprintf("%s #> %s", fsAction.Key, command)))
 				err := exe.Run(exe.GetOsShell(), command, fsStructure.Entrypoint)
 
 				if err != nil {

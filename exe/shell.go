@@ -21,10 +21,10 @@ func Run(shell, command, entrypoint string) error {
 	// Run command and print output
 	out, err := run.CombinedOutput()
 
-	UI.Output(strings.TrimSpace(string(out)))
+	UI.Output(ui.WrapAtLength(strings.TrimSpace(string(out))))
 
 	if err != nil {
-		UI.Error(fmt.Sprint(err))
+		UI.Error(ui.WrapAtLength(fmt.Sprint(err)))
 		UI.Output("")
 		return err
 	}

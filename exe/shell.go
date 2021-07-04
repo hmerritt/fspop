@@ -3,6 +3,8 @@ package exe
 import (
 	"fmt"
 	"os/exec"
+	"runtime"
+	"strings"
 
 	"gitlab.com/merrittcorp/fspop/ui"
 )
@@ -22,5 +24,34 @@ func Run(shell, command, entrypoint string) {
 		UI.Error(fmt.Sprint(err))
 	}
 
-	UI.Output(string(out))
+	UI.Output(strings.TrimSpace(string(out)))
+	UI.Output("")
+}
+
+// Returns shell name for OS.
+//
+// E.G. windows -> powershell
+func GetOsShell() string {
+	switch runtime.GOOS {
+	case "windows":
+		if CommandExists("powershell") {
+			return "powershell"
+		} else {
+			return "cmd"
+		}
+	case "linux":
+		if CommandExists("bash") {
+			return "bash"
+		} else {
+			return "sh"
+		}
+	default:
+		return "sh"
+	}
+}
+
+// Searches for an executable in the PATH
+func CommandExists(cmd string) bool {
+	_, err := exec.LookPath(cmd)
+	return err == nil
 }

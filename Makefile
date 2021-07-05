@@ -27,14 +27,20 @@ buildq:
 .PHONY:buildq
 
 buildlq:
-	gox -osarch "linux/amd64" -ldflags "-s -w" -tags "fspop" -gocmd go -output fspop .
+	gox -osarch "linux/amd64" \
+	-gocmd go        \
+	-mod vendor      \
+	-ldflags "-s -w" \
+	-tags "fspop"    \
+	-output fspop .
 .PHONY:buildlq
 
 build: vet
 	gox -osarch "darwin/amd64 linux/386 linux/amd64 linux/arm linux/arm64 windows/386 windows/amd64" \
+	-gocmd go        \
+	-mod vendor      \
 	-ldflags "-s -w" \
 	-tags "fspop"    \
-	-gocmd go        \
 	-output "pkg/{{.OS}}_{{.Arch}}/fspop"  \
 	.
 .PHONY:build

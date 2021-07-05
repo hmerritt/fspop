@@ -109,3 +109,23 @@ func WrapString(s string, lim uint, indentSpaces int) string {
 func WrapAtLength(s string, indentSpaces int) string {
 	return WrapString(s, MaxLineLength, indentSpaces)
 }
+
+// Indent string for ALL line-breaks.
+func IndentString(s string, indentSpaces int) string {
+	// Initialize a buffer with a slightly larger size to account for breaks
+	init := make([]byte, 0, len(s))
+	buf := bytes.NewBuffer(init)
+
+	for _, char := range s {
+		buf.WriteRune(char)
+
+		if char == '\n' {
+			// Add custom indent
+			for i := 0; i < indentSpaces; i++ {
+				buf.WriteRune(' ')
+			}
+		}
+	}
+
+	return buf.String()
+}

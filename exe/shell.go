@@ -31,7 +31,9 @@ func Run(shell, command, entrypoint string) error {
 	out, err := run.CombinedOutput()
 
 	shellPrint := func(s string) {
-		UI.Output(fmt.Sprintf("    %s", ui.WrapAtLength(strings.TrimSpace(s), 4)))
+		if len(strings.TrimSpace(s)) > 0 {
+			UI.Output(fmt.Sprintf("    %s", ui.WrapAtLength(strings.TrimSpace(s), 4)))
+		}
 	}
 
 	shellPrint(string(out))

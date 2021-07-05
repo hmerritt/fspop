@@ -132,7 +132,11 @@ func (c *DeployCommand) Run(args []string) int {
 	if len(fsStructure.Actions) > 0 {
 		for _, fsAction := range fsStructure.Actions {
 			if fsAction.CanRunOnOs() {
-				c.UI.Output(ui.WrapAtLength(fsAction.Key, 0))
+				if len(fsAction.GetKeyOs()) > 0 {
+					c.UI.Output(fmt.Sprintf("%s on %s", c.UI.Colorize(ui.WrapAtLength(fsAction.GetKeyWithoutOs(), 0), c.UI.InfoColor), fsAction.GetKeyOs()))
+				} else {
+					c.UI.Output(ui.WrapAtLength(fsAction.Key, 0))
+				}
 
 				printCommand := func(s string) {
 					c.UI.Info(ui.WrapAtLength(fmt.Sprintf("  $ %s", s), 2))

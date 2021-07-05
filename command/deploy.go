@@ -130,18 +130,21 @@ func (c *DeployCommand) Run(args []string) int {
 
 	// Check for any post-deploy 'Actions' scripts
 	if len(fsStructure.Actions) > 0 {
-		c.UI.Output("Post-Deploy Actions:\n")
-
-		// Loop all Actions
 		for _, fsAction := range fsStructure.Actions {
 			if fsAction.CanRunOnOs() {
+				c.UI.Output(ui.WrapAtLength(fsAction.Key, 0))
+
+				printCommand := func(s string) {
+					c.UI.Info(ui.WrapAtLength(fmt.Sprintf("  $ %s", s), 2))
+				}
+
 				// Check if first item in fsAction is not a command
 				// and is actually a script to be executed
 				// e.g. /usr/bin/backup.sh
 				ok, scriptPath := exe.ScriptExists(fsAction.Script[0], fsStructure.Entrypoint)
 				if len(fsAction.Script) == 1 && ok {
 					// Run command and print output
-					c.UI.Info(ui.WrapAtLength(fmt.Sprintf("%s #> %s", fsAction.Key, fsAction.Script[0]), 0))
+					printCommand(fsAction.Script[0])
 					err := exe.Run(exe.ScriptCommandExe(scriptPath), scriptPath, ".")
 					if err != nil {
 						errorCount++
@@ -153,7 +156,7 @@ func (c *DeployCommand) Run(args []string) int {
 				// Loop each script command
 				for _, command := range fsAction.Script {
 					// Run command and print output
-					c.UI.Info(ui.WrapAtLength(fmt.Sprintf("%s #> %s", fsAction.Key, command), 0))
+					printCommand(command)
 					err := exe.Run(exe.GetOsShell(), command, fsStructure.Entrypoint)
 
 					if err != nil {

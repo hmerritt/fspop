@@ -31,7 +31,7 @@ func Run(shell, command, entrypoint string) error {
 	out, err := run.CombinedOutput()
 
 	shellPrint := func(s string) {
-		UI.Output(fmt.Sprintf("  %s", ui.WrapAtLength(strings.TrimSpace(s), 2)))
+		UI.Output(fmt.Sprintf("    %s", ui.WrapAtLength(strings.TrimSpace(s), 4)))
 	}
 
 	shellPrint(string(out))

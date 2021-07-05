@@ -6,7 +6,6 @@ import (
 	"io"
 	"os/exec"
 	"runtime"
-	"strings"
 	"sync"
 
 	"gitlab.com/merrittcorp/fspop/ui"
@@ -77,11 +76,7 @@ func runStreamStd(reader io.Reader, output func(message string), wg *sync.WaitGr
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
 		s := scanner.Text()
-		t := strings.TrimSpace(s)
-
-		if len(t) > 0 {
-			output(fmt.Sprintf("    %s", ui.IndentString(t, 4)))
-		}
+		output(fmt.Sprintf("    %s", ui.IndentString(s, 4)))
 	}
 
 	wg.Done()

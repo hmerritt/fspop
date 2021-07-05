@@ -130,9 +130,11 @@ func (c *DeployCommand) Run(args []string) int {
 
 	// Check for any post-deploy 'Actions' scripts
 	if len(fsStructure.Actions) > 0 {
-		for i, fsAction := range fsStructure.Actions {
+		iRan := 0
+		for _, fsAction := range fsStructure.Actions {
 			if fsAction.CanRunOnOs() {
-				if i > 1 {
+				iRan++
+				if iRan > 1 {
 					c.UI.Output("")
 				}
 
@@ -143,7 +145,7 @@ func (c *DeployCommand) Run(args []string) int {
 				}
 
 				printCommand := func(s string) {
-					c.UI.Info(ui.WrapAtLength(fmt.Sprintf("  $ %s", s), 2))
+					c.UI.Info(ui.WrapAtLength(fmt.Sprintf("  $ %s", s), 4))
 				}
 
 				// Check if first item in fsAction is not a command

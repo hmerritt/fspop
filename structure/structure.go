@@ -78,7 +78,7 @@ func (fsAction *FspopAction) GetKeyOs() string {
 	return ""
 }
 
-// Returns bool if current Action can run on this OS.
+// Returns bool if current Action can run on this OS
 func (fsAction *FspopAction) CanRunOnOs() bool {
 	OS := fsAction.GetKeyOs()
 
@@ -87,6 +87,14 @@ func (fsAction *FspopAction) CanRunOnOs() bool {
 	}
 
 	return true
+}
+
+// Removes the OS extension from the Key
+func (fsAction *FspopAction) GetKeyWithoutOs() string {
+	if len(fsAction.GetKeyOs()) > 0 {
+		return strings.TrimSuffix(fsAction.Key, fmt.Sprintf("_%s", fsAction.GetKeyOs()))
+	}
+	return fsAction.Key
 }
 
 //

@@ -2,6 +2,7 @@ package structure
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
 )
 
@@ -52,8 +53,41 @@ type FspopStructure struct {
 }
 
 //
-// FspopData methods
+// FspopAction methods
 //
+
+// Extracts the OS from the Key.
+// Keys with '_windows' appended will only run on that OS
+//
+// Returns an empty string if none found
+func (fsAction *FspopAction) GetKeyOs() string {
+	key := strings.ToLower(fsAction.Key)
+
+	if strings.HasSuffix(key, "_windows") {
+		return "windows"
+	}
+
+	if strings.HasSuffix(key, "_linux") {
+		return "linux"
+	}
+
+	if strings.HasSuffix(key, "_darwin") {
+		return "darwin"
+	}
+
+	return ""
+}
+
+// Returns bool if current Action can run on this OS.
+func (fsAction *FspopAction) CanRunOnOs() bool {
+	OS := fsAction.GetKeyOs()
+
+	if len(OS) > 0 && runtime.GOOS != OS {
+		return false
+	}
+
+	return true
+}
 
 //
 // FspopDynamic methods

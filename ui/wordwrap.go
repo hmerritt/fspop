@@ -1,9 +1,18 @@
-package wordwrap
+package ui
 
 import (
 	"bytes"
 	"unicode"
 )
+
+// Maximum width of any line, in character count.
+const MaxLineLength = 75
+
+//
+// Imported directly from, https://github.com/mitchellh/go-wordwrap/blob/v1.0.1/wordwrap.go
+//
+// Modified subtly to fit the needs of fspop
+//
 
 const nbsp = 0xA0
 
@@ -13,7 +22,7 @@ const nbsp = 0xA0
 // version of the library will implement smarter wrapping. This means that
 // pathological cases can dramatically reach past the limit, such as a very
 // long word.
-func WrapString(s string, lim uint) string {
+func WrapString(s string, lim uint, indentSpaces int) string {
 	// Initialize a buffer with a slightly larger size to account for breaks
 	init := make([]byte, 0, len(s))
 	buf := bytes.NewBuffer(init)
@@ -43,6 +52,12 @@ func WrapString(s string, lim uint) string {
 				wordBufLen = 0
 			}
 			buf.WriteRune(char)
+
+			// Add custom indent
+			for i := 0; i < indentSpaces; i++ {
+				buf.WriteRune(' ')
+			}
+
 			current = 0
 		} else if unicode.IsSpace(char) && char != nbsp {
 			if spaceBuf.Len() == 0 || wordBuf.Len() > 0 {
@@ -62,7 +77,13 @@ func WrapString(s string, lim uint) string {
 			wordBufLen++
 
 			if current+wordBufLen+spaceBufLen > lim && wordBufLen < lim {
-				buf.WriteRune('\n')
+				buf.WriteRune('\n') // break
+
+				// Add custom indent
+				for i := 0; i < indentSpaces; i++ {
+					buf.WriteRune(' ')
+				}
+
 				current = 0
 				spaceBuf.Reset()
 				spaceBufLen = 0
@@ -80,4 +101,11 @@ func WrapString(s string, lim uint) string {
 	}
 
 	return buf.String()
+}
+
+// Wraps the given text to maxLineLength.
+//
+// Define the number of indent spaces added on-wrap
+func WrapAtLength(s string, indentSpaces int) string {
+	return WrapString(s, MaxLineLength, indentSpaces)
 }

@@ -30,15 +30,17 @@ func Run(shell, command, entrypoint string) error {
 	// Run command and print output
 	out, err := run.CombinedOutput()
 
-	UI.Output(ui.WrapAtLength(strings.TrimSpace(string(out))))
+	shellPrint := func(s string) {
+		UI.Output(fmt.Sprintf("  %s", ui.WrapAtLength(strings.TrimSpace(s), 2)))
+	}
+
+	shellPrint(string(out))
 
 	if err != nil {
-		UI.Error(ui.WrapAtLength(fmt.Sprint(err)))
+		shellPrint(fmt.Sprint(err))
 		UI.Output("")
 		return err
 	}
-
-	UI.Output("")
 
 	return nil
 }

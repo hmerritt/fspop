@@ -1,10 +1,12 @@
 package exe
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"os/exec"
 	"runtime"
-	"strings"
+	"sync"
 
 	"gitlab.com/merrittcorp/fspop/ui"
 )
@@ -24,23 +26,60 @@ func Run(shell, command, entrypoint string) error {
 		run = exec.Command(shell, command)
 	}
 
-	// Set exec directory to the entrypoint
 	run.Dir = entrypoint
 
-	// Run command and print output
-	out, err := run.CombinedOutput()
-
-	UI.Output(ui.WrapAtLength(strings.TrimSpace(string(out))))
-
+	stdOut, stdErr, err := runGetStdPipes(run)
 	if err != nil {
-		UI.Error(ui.WrapAtLength(fmt.Sprint(err)))
-		UI.Output("")
 		return err
 	}
 
-	UI.Output("")
+	err = run.Start()
+	if err != nil {
+		return err
+	}
+
+	// Stream standard output live
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go runStreamStd(stdOut, UI.Output, &wg)
+	go runStreamStd(stdErr, UI.Error, &wg)
+
+	err = run.Wait()
+	if err != nil {
+		return err
+	}
+
+	wg.Wait()
 
 	return nil
+}
+
+// Returns both stdout and stderr piped io.Reader
+func runGetStdPipes(run *exec.Cmd) (io.Reader, io.Reader, error) {
+	// Standard Output pipe
+	stdout, err := run.StdoutPipe()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Standard Error pipe
+	stderr, err2 := run.StderrPipe()
+	if err2 != nil {
+		return nil, nil, err2
+	}
+
+	// Combine outputs into one io.Reader
+	return stdout, stderr, nil
+}
+
+func runStreamStd(reader io.Reader, output func(message string), wg *sync.WaitGroup) {
+	scanner := bufio.NewScanner(reader)
+	for scanner.Scan() {
+		s := scanner.Text()
+		output(fmt.Sprintf("    %s", ui.IndentString(s, 4)))
+	}
+
+	wg.Done()
 }
 
 // Returns shell name for OS.

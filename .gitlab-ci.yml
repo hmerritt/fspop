@@ -5,7 +5,7 @@ stages:
     - release
 
 before_script:
-    - go mod download
+    # - go mod download
     - make bootstrap
     - apt-get update -y
     - apt-get install zip -y

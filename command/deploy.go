@@ -130,36 +130,53 @@ func (c *DeployCommand) Run(args []string) int {
 
 	// Check for any post-deploy 'Actions' scripts
 	if len(fsStructure.Actions) > 0 {
-		c.UI.Output("Post-Deploy Actions:\n")
-
-		// Loop all Actions
-		for _, fsAction := range fsStructure.Actions {
-			// Check if first item in fsAction is not a command
-			// and is actually a script to be executed
-			// e.g. /usr/bin/backup.sh
-			ok, scriptPath := exe.ScriptExists(fsAction.Script[0], fsStructure.Entrypoint)
-			if len(fsAction.Script) == 1 && ok {
-				// Run command and print output
-				c.UI.Info(ui.WrapAtLength(fmt.Sprintf("%s #> %s", fsAction.Key, fsAction.Script[0])))
-				err := exe.Run(exe.ScriptCommandExe(scriptPath), scriptPath, ".")
-				if err != nil {
-					errorCount++
-					c.strictExit()
+		for i, fsAction := range fsStructure.Actions {
+			if fsAction.CanRunOnOs() {
+				if i > 1 {
+					c.UI.Output("")
 				}
-				continue
-			}
 
-			// Loop each script command
-			for _, command := range fsAction.Script {
-				// Run command and print output
-				c.UI.Info(ui.WrapAtLength(fmt.Sprintf("%s #> %s", fsAction.Key, command)))
-				err := exe.Run(exe.GetOsShell(), command, fsStructure.Entrypoint)
+				if len(fsAction.GetKeyOs()) > 0 {
+					c.UI.Output(fmt.Sprintf("%s on %s", c.UI.Colorize(ui.WrapAtLength(fsAction.GetKeyWithoutOs(), 0), c.UI.InfoColor), fsAction.GetKeyOs()))
+				} else {
+					c.UI.Output(ui.WrapAtLength(fsAction.Key, 0))
+				}
 
-				if err != nil {
-					errorCount++
-					c.strictExit()
+				printCommand := func(s string) {
+					c.UI.Info(ui.WrapAtLength(fmt.Sprintf("  $ %s", s), 2))
+				}
+
+				// Check if first item in fsAction is not a command
+				// and is actually a script to be executed
+				// e.g. /usr/bin/backup.sh
+				ok, scriptPath := exe.ScriptExists(fsAction.Script[0], fsStructure.Entrypoint)
+				if len(fsAction.Script) == 1 && ok {
+					// Run command and print output
+					printCommand(fsAction.Script[0])
+					err := exe.Run(exe.ScriptCommandExe(scriptPath), scriptPath, ".")
+					if err != nil {
+						errorCount++
+						c.strictExit()
+					}
+					continue
+				}
+
+				// Loop each script command
+				for _, command := range fsAction.Script {
+					// Run command and print output
+					printCommand(command)
+					err := exe.Run(exe.GetOsShell(), command, fsStructure.Entrypoint)
+
+					if err != nil {
+						errorCount++
+						c.strictExit()
+					}
 				}
 			}
+		}
+
+		if len(fsStructure.Actions) > 0 {
+			c.UI.Output("")
 		}
 	}
 
@@ -293,7 +310,7 @@ func printError(c *DeployCommand, bar *progressbar.ProgressBar, errorCount *int,
 	}
 
 	// Print error
-	c.UI.Error(fmt.Sprintf("  -- %s\n", err))
+	c.UI.Error(ui.WrapAtLength(fmt.Sprintf("  -- %s\n", err), 5))
 
 	// Exif IF --strict
 	if c.Flags().Get("strict").Value == true {

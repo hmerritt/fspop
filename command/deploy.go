@@ -130,8 +130,12 @@ func (c *DeployCommand) Run(args []string) int {
 
 	// Check for any post-deploy 'Actions' scripts
 	if len(fsStructure.Actions) > 0 {
-		for _, fsAction := range fsStructure.Actions {
+		for i, fsAction := range fsStructure.Actions {
 			if fsAction.CanRunOnOs() {
+				if i > 1 {
+					c.UI.Output("")
+				}
+
 				if len(fsAction.GetKeyOs()) > 0 {
 					c.UI.Output(fmt.Sprintf("%s on %s", c.UI.Colorize(ui.WrapAtLength(fsAction.GetKeyWithoutOs(), 0), c.UI.InfoColor), fsAction.GetKeyOs()))
 				} else {

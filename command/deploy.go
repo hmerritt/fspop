@@ -306,7 +306,7 @@ func printError(c *DeployCommand, bar *progressbar.ProgressBar, errorCount *int,
 	}
 
 	// Print error
-	c.UI.Error(fmt.Sprintf("  -- %s\n", err))
+	c.UI.Error(ui.WrapAtLength(fmt.Sprintf("  -- %s\n", err), 5))
 
 	// Exif IF --strict
 	if c.Flags().Get("strict").Value == true {

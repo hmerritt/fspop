@@ -134,32 +134,38 @@ func (c *DeployCommand) Run(args []string) int {
 
 		// Loop all Actions
 		for _, fsAction := range fsStructure.Actions {
-			// Check if first item in fsAction is not a command
-			// and is actually a script to be executed
-			// e.g. /usr/bin/backup.sh
-			ok, scriptPath := exe.ScriptExists(fsAction.Script[0], fsStructure.Entrypoint)
-			if len(fsAction.Script) == 1 && ok {
-				// Run command and print output
-				c.UI.Info(ui.WrapAtLength(fmt.Sprintf("%s #> %s", fsAction.Key, fsAction.Script[0])))
-				err := exe.Run(exe.ScriptCommandExe(scriptPath), scriptPath, ".")
-				if err != nil {
-					errorCount++
-					c.strictExit()
+			if fsAction.CanRunOnOs() {
+				// Check if first item in fsAction is not a command
+				// and is actually a script to be executed
+				// e.g. /usr/bin/backup.sh
+				ok, scriptPath := exe.ScriptExists(fsAction.Script[0], fsStructure.Entrypoint)
+				if len(fsAction.Script) == 1 && ok {
+					// Run command and print output
+					c.UI.Info(ui.WrapAtLength(fmt.Sprintf("%s #> %s", fsAction.Key, fsAction.Script[0]), 0))
+					err := exe.Run(exe.ScriptCommandExe(scriptPath), scriptPath, ".")
+					if err != nil {
+						errorCount++
+						c.strictExit()
+					}
+					continue
 				}
-				continue
-			}
 
-			// Loop each script command
-			for _, command := range fsAction.Script {
-				// Run command and print output
-				c.UI.Info(ui.WrapAtLength(fmt.Sprintf("%s #> %s", fsAction.Key, command)))
-				err := exe.Run(exe.GetOsShell(), command, fsStructure.Entrypoint)
+				// Loop each script command
+				for _, command := range fsAction.Script {
+					// Run command and print output
+					c.UI.Info(ui.WrapAtLength(fmt.Sprintf("%s #> %s", fsAction.Key, command), 0))
+					err := exe.Run(exe.GetOsShell(), command, fsStructure.Entrypoint)
 
-				if err != nil {
-					errorCount++
-					c.strictExit()
+					if err != nil {
+						errorCount++
+						c.strictExit()
+					}
 				}
 			}
+		}
+
+		if len(fsStructure.Actions) > 0 {
+			c.UI.Output("")
 		}
 	}
 

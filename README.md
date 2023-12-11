@@ -4,6 +4,8 @@ Automate the creation of file structures using custom templates.
 
 fspop => **f**(ile) **s**(tructure) **pop**(ulate)
 
+![fspop cli](readme-image.png)
+
 ## Usage
 
 ### Create a new structure file

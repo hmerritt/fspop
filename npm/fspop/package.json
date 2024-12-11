@@ -1,0 +1,21 @@
+{
+    "name": "fspop",
+    "version": "1.3.6",
+    "description": "fspop, automate the creation of file structures using custom templates.",
+    "bin": {
+        "fspop": "bin/fspop"
+    },
+    "scripts": {
+        "postinstall": "node install.js"
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/hmerritt/fspop.git"
+    }
+}

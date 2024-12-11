@@ -18,3 +18,6 @@ target/
 *.log
 *.tar
 *.tar.gz
+
+!npm/**/*
+npm/**/*.exe

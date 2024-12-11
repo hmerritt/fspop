@@ -1,0 +1,20 @@
+#!/usr/bin/env node
+
+const os = require('os')
+const path = require('path')
+const { spawn } = require('child_process')
+
+const binaryPath = path.join(__dirname, `_fspop${(os.platform() === 'win32' ? '.exe' : '')}`)
+
+const proc = spawn(binaryPath, process.argv.slice(2), {
+	stdio: 'inherit'
+})
+
+proc.on('exit', code => {
+	process.exit(code)
+})
+
+proc.on('error', err => {
+	console.error('[fspop] Failed to start binary:', err)
+	process.exit(1)
+})

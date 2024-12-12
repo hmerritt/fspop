@@ -1,10 +1,10 @@
 {
-    "name": "fspop-linux-x64",
+    "name": "fspop-darwin-x64",
     "version": "1.3.6",
-    "description": "The linux 64-bit binary for fspop, automate the creation of file structures using custom templates.",
+    "description": "The macOS 64-bit binary for fspop, automate the creation of file structures using custom templates.",
     "license": "MIT",
     "os": [
-        "linux"
+        "darwin"
     ],
     "cpu": [
         "x64"

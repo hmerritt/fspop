@@ -36,7 +36,7 @@ buildlq:
 .PHONY:buildlq
 
 build: vet
-	gox -osarch "darwin/amd64 linux/386 linux/amd64 linux/arm linux/arm64 windows/386 windows/amd64" \
+	gox -osarch "darwin/amd64 darwin/arm64 linux/386 linux/amd64 linux/arm linux/arm64 windows/386 windows/amd64" \
 	-gocmd go        \
 	-mod vendor      \
 	-ldflags "-s -w" \

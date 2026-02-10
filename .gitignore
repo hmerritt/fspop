@@ -3,7 +3,7 @@
 **/fspop
 sandbox/
 
-bin/
+bin/**/*
 dist/
 pkg/
 
@@ -19,5 +19,9 @@ target/
 *.tar
 *.tar.gz
 
-!npm/**/*
-npm/**/*.exe
+!npm/fspop/bin/fspop
+npm/fspop-darwin-arm64/fspop
+npm/fspop-darwin-x64/fspop
+npm/fspop-linux-arm64/fspop
+npm/fspop-linux-x64/fspop
+npm/fspop-win32-x64/fspop

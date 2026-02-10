@@ -1,6 +1,6 @@
 {
     "name": "fspop",
-    "version": "1.3.6",
+    "version": "1.3.249",
     "description": "fspop, automate the creation of file structures using custom templates.",
     "bin": {
         "fspop": "bin/fspop"

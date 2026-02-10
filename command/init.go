@@ -108,7 +108,7 @@ data:
   - example: text can be imported like this
   - data_file: /path/to/file
   - data_url: https://example.com/data/from/url
-  - data_actual: https://via.placeholder.com/400/771796
+  - data_actual: https://picsum.photos/200
 
 dynamic:
   - dyn:

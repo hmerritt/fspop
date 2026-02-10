@@ -64,9 +64,9 @@ The name of a data variable can be anything you like, `example`, `readme`, and `
 
 The value of a data variable can also be anything you like. `fspop` can load text, local files and even download URL content.
 
--   text
--   local file
--   URL
+- text
+- local file
+- URL
 
 Data variables are defined once, in the `data:` section, and then can be used for **multiple** files in the `structure:` section.
 
@@ -77,7 +77,7 @@ entrypoint: fspop/data
 data:
     - example: text can be added to a file like this
     - readme: ../path/to/local/file/README.md
-    - image: https://via.placeholder.com/400/771796
+    - image: https://picsum.photos/200
     - earnings_report: https://example.com/earnings/report.pdf
 
 structure:
@@ -94,18 +94,18 @@ structure:
 
 Options:
 
--   `amount` : amount of files/folders to create (any number above 0)
--   `data` : data variable to use to add content into files (all files created will have the data content)
--   `type` : `file` or `folder` - type of item to create
--   `name` : name of each item, `$num` is used to number each item (if name is `report ($num).pdf`, then the 50th file will be `report (50).pdf`)
--   `padded` : `true` or `false` - pad name with `0`s so all items have the same length, `report (50)` -> `report (050)`
--   `start` : starting number for name `$num`
+- `amount` : amount of files/folders to create (any number above 0)
+- `data` : data variable to use to add content into files (all files created will have the data content)
+- `type` : `file` or `folder` - type of item to create
+- `name` : name of each item, `$num` is used to number each item (if name is `report ($num).pdf`, then the 50th file will be `report (50).pdf`)
+- `padded` : `true` or `false` - pad name with `0`s so all items have the same length, `report (50)` -> `report (050)`
+- `start` : starting number for name `$num`
 
 The `amount` option is **required** (the rest have default values).
 
 Dynamic items are used by their name + a `$`:
 
--   `$dynamicItem`
+- `$dynamicItem`
 
 ```yaml
 name: data example

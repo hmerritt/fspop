@@ -8,6 +8,8 @@ import (
 // VersionInfo
 type VersionInfo struct {
 	Revision          string
+	Branch            string
+	BuildDate         string
 	Version           string
 	VersionPrerelease string
 	VersionMetadata   string
@@ -26,6 +28,8 @@ func GetVersion() *VersionInfo {
 
 	return &VersionInfo{
 		Revision:          GitCommit,
+		Branch:            GitBranch,
+		BuildDate:         BuildDate,
 		Version:           ver,
 		VersionPrerelease: rel,
 		VersionMetadata:   md,
@@ -54,10 +58,11 @@ func (c *VersionInfo) FullVersionNumber(rev bool) string {
 	var versionString bytes.Buffer
 
 	if Version == "unknown" && VersionPrerelease == "unknown" {
-		return "fspop [Version unknown]"
+		return "reactenv [Version unknown]"
 	}
 
-	fmt.Fprintf(&versionString, "fspop [Version %s", c.Version)
+	fmt.Fprintf(&versionString, "reactenv [Version %s", c.Version)
+
 	if c.VersionPrerelease != "" {
 		fmt.Fprintf(&versionString, "-%s", c.VersionPrerelease)
 	}
@@ -67,10 +72,38 @@ func (c *VersionInfo) FullVersionNumber(rev bool) string {
 	}
 
 	if rev && c.Revision != "" {
-		fmt.Fprintf(&versionString, " %s", c.Revision)
+		fmt.Fprintf(&versionString, " %s", "(")
+
+		if c.Branch != "" && c.Branch != "master" && c.Branch != "HEAD" {
+			fmt.Fprintf(&versionString, "%s", c.Branch)
+			fmt.Fprintf(&versionString, "%s", "/")
+		}
+
+		fmt.Fprintf(&versionString, "%s", c.Revision)
+
+		fmt.Fprintf(&versionString, "%s", ")")
 	}
 
 	fmt.Fprintf(&versionString, "]")
 
 	return versionString.String()
+}
+
+func PrintTitle() {
+	// Get version info
+	versionStruct := GetVersion()
+
+	// Check if dev release
+	// Hide git-sha for main releases
+	isDev := false
+	if versionStruct.VersionPrerelease != "" || (versionStruct.Branch != "master" && versionStruct.Branch != "HEAD") {
+		isDev = true
+	}
+
+	// Get full version string
+	versionString := versionStruct.FullVersionNumber(isDev)
+
+	fmt.Println(versionString)
+	fmt.Println("(c) MerrittCorp. All rights reserved.")
+	fmt.Println()
 }

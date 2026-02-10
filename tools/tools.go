@@ -1,3 +1,4 @@
+//go:build tools
 // +build tools
 
 // This file ensures tool dependencies are kept in sync.
@@ -6,7 +7,9 @@
 
 package tools
 
+//go:generate go install github.com/magefile/mage
 //go:generate go install github.com/mitchellh/gox
 import (
+	_ "github.com/magefile/mage"
 	_ "github.com/mitchellh/gox"
 )

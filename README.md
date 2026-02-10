@@ -1,5 +1,7 @@
 # fspop
 
+[![](https://img.shields.io/npm/v/fspop)](https://www.npmjs.com/package/fspop)
+
 Automate the creation of file structures using custom templates.
 
 fspop => **f**(ile) **s**(tructure) **pop**(ulate)
